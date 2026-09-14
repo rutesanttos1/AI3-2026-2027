@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<fatura id="1">
+    <cabecalho>
+        <data>2023-01-01</data>
+        <cliente>
+            <nome>Nome do Cliente</nome>
+            <morada>Rua do Cliente, 123</morada>
+            <telefone>123456789</telefone>
+        </cliente>    
+    </cabecalho>
+    <produtos>
+        <produto>
+            <codigo>1</codigo>
+            <designacao>Produto 1</designacao>
+            <quantidade>10</quantidade>
+            <preco>100.00</preco>
+        </produto>
+        <produto>
+            <codigo>2</codigo>
+            <designacao>Produto 2</designacao>
+            <quantidade>5</quantidade>
+            <preco>50.00</preco>
+        </produto>
+    </produtos>
+</fatura>
+
+<!--O número deixou de ser um elemento filho de cabecalho e passou a ser o atributo id do elemento fatura. -->
+
+<!--
+Pergunta 8 - Classificação de nós (fatura-v1.xml)
+
+O nó "fatura" é o elemento raiz do documento: não tem pai, pois não existe
+nenhum elemento que o contenha, e não tem irmãos, pois é o único nó de topo
+da árvore.
+
+O nó "cliente" é um nó intermédio: tem como pai o elemento "cabecalho" e
+contém, por sua vez, os elementos filhos "nome", "morada" e "telefone".
+Dentro de "cabecalho", o único outro filho é "data", pelo que esse é o seu
+irmão.
+
+O nó "nome" é um nó terminal (folha): não possui elementos filhos, contendo
+apenas texto. O seu pai é o elemento "cliente" e os seus irmãos são os
+restantes filhos desse elemento, ou seja, "morada" e "telefone".
+
+O atributo "id", pertencente ao elemento "fatura", é classificado como
+atributo: o seu "pai" é o elemento a que pertence, isto é, "fatura". Os
+atributos não têm irmãos, uma vez que não fazem parte da sequência ordenada
+de nós-filho de um elemento, ao contrário dos elementos e do texto.
+
+Por fim, o texto "Nome do Cliente", contido dentro do elemento "nome", é
+classificado como nó de texto. O seu pai é o elemento "nome" e não tem
+irmãos, pois é o único conteúdo textual presente nesse elemento.
+-->
