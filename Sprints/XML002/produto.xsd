@@ -29,9 +29,3 @@
   </xsd:element>
 
 </xsd:schema>
-
-exercicio 3 
-O ProductID foi declarado como obrigatório através de use="required", enquanto o atributo Category é opcional, pois não possui use="required".
-
-exercicio 5
-O Provider foi declarado com um complexType porque contém os elementos Name e City. Foi definido como opcional com minOccurs="0" e pode aparecer no máximo três vezes com maxOccurs="3".
