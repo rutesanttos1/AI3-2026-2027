@@ -25,3 +25,5 @@
     }
   ]
 }
+
+disciplina aparece várias vezes no XML, por isso é representada por um array. Os atributos codigo e horas passam a propriedades. teorica e pratica são objetos porque possuem mais do que uma informação.
