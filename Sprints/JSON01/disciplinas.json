@@ -25,3 +25,5 @@
     }
   ]
 }
+
+2.Os atributos do XML foram representados como propriedades do JSON. Como existem várias disciplina, estas foram representadas através de um array. As propriedades teorica e pratica foram representadas como objetos, pois contêm as propriedades horas e nome.
