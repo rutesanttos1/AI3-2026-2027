@@ -3,67 +3,97 @@
   "title": "Disciplinas",
   "description": "Schema para validar as disciplinas",
   "type": "object",
+
   "properties": {
     "curso": {
       "type": "string"
     },
+
     "disciplinas": {
       "type": "array",
+      "minItems": 1,
+      "maxItems": 10,
+
       "items": {
         "type": "object",
+
         "properties": {
           "codigo": {
             "type": "string"
           },
+
           "nome": {
             "type": "string"
           },
+
           "ano": {
             "type": "integer"
           },
+
           "teorica": {
             "type": "object",
+
             "properties": {
               "horas": {
                 "type": "integer"
               },
+
               "nome": {
                 "type": "string"
               }
             },
+
             "required": [
               "horas",
               "nome"
             ]
           },
+
           "pratica": {
             "type": "object",
+
             "properties": {
               "horas": {
                 "type": "integer"
               },
+
               "nome": {
                 "type": "string"
               }
             },
+
             "required": [
               "horas",
               "nome"
             ]
           }
         },
+
         "required": [
           "codigo",
           "nome",
           "teorica"
         ]
-      },
-      "minItems": 1,
-      "maxItems": 10
+      }
     }
   },
+
   "required": [
     "curso",
     "disciplinas"
   ]
 }
+
+4.No schema, as propriedades obrigatórias são indicadas através da palavra-chave `required`. Assim, `curso` e `disciplinas` são obrigatórios, tal como `codigo`, `nome` e `teorica` em cada disciplina. A propriedade `pratica` é opcional porque não aparece no `required`.
+
+Como `teorica` e `pratica` são objetos com propriedades no seu interior, possuem uma secção `properties` própria e um `required` interno, onde `horas` e `nome` são obrigatórios.
+
+5."disciplinas": {
+  "type": "array",
+  "minItems": 1,
+  "maxItems": 10
+}
+
+A lista disciplinas é definida como um array, com no mínimo 1 e no máximo 10 disciplinas, através de minItems e maxItems.
+
+6.O ficheiro disciplinas.json foi validado contra o disciplinas.schema.json e passou na validação, não apresentando erros de estrutura ou de tipos.
