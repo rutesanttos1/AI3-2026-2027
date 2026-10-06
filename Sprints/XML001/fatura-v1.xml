@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<fatura>
+    <cabecalho>
+        <numero>1</numero>
+        <data>2023-01-01</data>
+        <cliente>
+            <nome>Nome do Cliente</nome>
+            <morada>Rua do Cliente, 123</morada>
+            <telefone>123456789</telefone>
+        </cliente>    
+    </cabecalho>
+    <produtos>
+        <produto>
+            <codigo>1</codigo>
+            <designacao>Produto 1</designacao>
+            <quantidade>10</quantidade>
+            <preco>100.00</preco>
+        </produto>
+    </produtos>
+</fatura>
