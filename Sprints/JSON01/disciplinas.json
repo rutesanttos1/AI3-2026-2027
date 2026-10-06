@@ -1,0 +1,29 @@
+{
+  "curso": "TDM",
+  "disciplinas": [
+    {
+      "codigo": "12A",
+      "nome": "Aplicacoes para a Internet III",
+      "ano": 2,
+      "teorica": {
+        "horas": 2,
+        "nome": "Ana Marques"
+      },
+      "pratica": {
+        "horas": 3,
+        "nome": "Rui Tavares"
+      }
+    },
+    {
+      "codigo": "34A",
+      "nome": "Bases de Dados",
+      "ano": 1,
+      "teorica": {
+        "horas": 2,
+        "nome": "Carla Mendes"
+      }
+    }
+  ]
+}
+
+2.Os atributos do XML foram representados como propriedades do JSON. Como existem várias disciplina, estas foram representadas através de um array. As propriedades teorica e pratica foram representadas como objetos, pois contêm as propriedades horas e nome.
