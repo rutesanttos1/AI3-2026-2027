@@ -1,0 +1,132 @@
+            $ref: '#/components/schemas/Sugestao'
+
+    EstatisticasResolucao:
+      type: object
+      required:
+        - anoLetivo
+        - totalSugestoes
+        - porEstado
+        - taxaResolucao
+        - tempoMedioResolucaoDias
+      properties:
+        anoLetivo:
+          type: string
+          pattern: '^[0-9]{4}-[0-9]{4}$'
+        totalSugestoes:
+          type: integer
+          minimum: 0
+        porEstado:
+          type: object
+          required:
+            - submetida
+            - em_analise
+            - aceite
+            - rejeitada
+            - resolvida
+          properties:
+            submetida:
+              type: integer
+              minimum: 0
+            em_analise:
+              type: integer
+              minimum: 0
+            aceite:
+              type: integer
+              minimum: 0
+            rejeitada:
+              type: integer
+              minimum: 0
+            resolvida:
+              type: integer
+              minimum: 0
+          additionalProperties: false
+        taxaResolucao:
+          type: number
+          minimum: 0
+          maximum: 1
+        tempoMedioResolucaoDias:
+          type: number
+          minimum: 0
+          nullable: true
+
+    EstatisticasCategorias:
+      type: object
+      required:
+        - anoLetivo
+        - categorias
+      properties:
+        anoLetivo:
+          type: string
+          pattern: '^[0-9]{4}-[0-9]{4}$'
+        categorias:
+          type: array
+          minItems: 1
+          maxItems: 5
+          items:
+            type: object
+            required:
+              - categoria
+              - total
+              - resolvidas
+              - taxaResolucao
+            properties:
+              categoria:
+                $ref: '#/components/schemas/CodigoCategoria'
+              total:
+                type: integer
+                minimum: 0
+              resolvidas:
+                type: integer
+                minimum: 0
+              taxaResolucao:
+                type: number
+                minimum: 0
+                maximum: 1
+
+    Erro:
+      type: object
+      required:
+        - codigo
+        - mensagem
+      properties:
+        codigo:
+          type: integer
+          minimum: 400
+          maximum: 599
+        mensagem:
+          type: string
+          minLength: 1
+          maxLength: 200
+        detalhes:
+          type: array
+          items:
+            type: object
+            required:
+              - campo
+              - problema
+            properties:
+              campo:
+                type: string
+              problema:
+                type: string
+
+  responses:
+    ErroPedidoInvalido:
+      description: Pedido inválido ou parâmetros incorretos.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+    ErroNaoEncontrado:
+      description: A sugestão ou o recurso solicitado não foi encontrado.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+    ErroValidacao:
+      description: Os dados enviados não respeitam as regras de validação.
+      content:
+
+
+
+Já está até à 4.2
