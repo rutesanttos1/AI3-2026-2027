@@ -94,6 +94,41 @@ A ferramenta apresentou a mensagem `Failed to parse API description — deficien
 O resultado demonstra que um erro de sintaxe ou indentação impede o Redocly de interpretar corretamente o documento YAML.$ref: '#/components/schemas/ListaSugestoes'
 
 
+13.
+Alteração introduzida	Tipo de problema	Ferramenta / resultado esperado
+
+Usar uma tabulação na indentação	Sintaxe YAML errada	PyYAML: erro de indentação/tabulação
+
+Retirar as plicas de um $ref	OpenAPI inválido	O YAML interpreta o restante como comentário e o $ref fica sem valor
+
+Retirar a description de uma resposta	OpenAPI inválido	Swagger Editor ou Redocly: falta a descrição obrigatória
+
+Retirar required: true do parâmetro id	OpenAPI inválido	Swagger Editor ou Redocly: parâmetro de caminho tem de ser obrigatório
+
+Colocar estado: fechada no exemplo	Exemplo inválido	O validador deteta que fechada não pertence ao enum de Estado
+
+Retirar Cache-Control do 200 de listarCategorias	OpenAPI válido, mas requisito incumprido	O validador pode não apresentar erros; é necessária verificação manual do requisito
+
+
+14.
+Construção	Onde foi usada	O que ficou a ser exigido	O que continua a ser permitido
+
+in: path	Parâmetro id	Identificador inteiro positivo e obrigatório	Qualquer inteiro igual ou superior a 1
+
+in: query	Parâmetro estado	Valor pertencente ao enum Estado	Qualquer um dos cinco estados
+
+requestBody + $ref	criarSugestao	Os quatro campos de SugestaoNova	Valores dentro dos limites definidos
+
+allOf + readOnly	Sugestao	Campos acrescentados pelo servidor nas respostas	Os campos de entrada definidos em SugestaoNova
+
+nullable	dataResolucao	Propriedade obrigatória nas respostas	Uma data válida ou null
+
+Resposta 201 + Location	criarSugestao	Indicação do URL do recurso criado	O URL concreto da sugestão criada
+
+Cache-Control	listarCategorias	Valor public, max-age=86400	Apenas o valor definido no enum
+
+ETag + If-Match	substituirSugestao	Cabeçalho If-Match obrigatório	O valor correspondente à versão atual do recurso
+
 
 4.5
 Reflexão Critica
@@ -110,3 +145,4 @@ Acrescentar uma propriedade obrigatória a SugestaoNova pode impedir os clientes
 Porque são utilizados para finalidades diferentes. O YAML descreve o contrato da API; o JSON é o formato dos dados enviados nos pedidos e devolvidos nas respostas.
 15.6. Qual é a vantagem de escrever o contrato antes do código?
 Permite identificar antecipadamente desacordos sobre URLs, métodos, campos obrigatórios, tipos, códigos HTTP e cache. Assim, cliente e servidor podem ser desenvolvidos com base nas mesmas regras, reduzindo erros de integração.
+
