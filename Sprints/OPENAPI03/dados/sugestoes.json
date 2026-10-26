@@ -1,0 +1,38 @@
+[
+  {
+    "id": 1,
+    "numeroAluno": "12345",
+    "titulo": "Instalação de tomadas na sala de estudo",
+    "descricao": "É necessária a colocação de mais tomadas elétricas nas mesas centrais da sala de estudo.",
+    "categoria": "infraestruturas",
+    "estado": "submetida",
+    "dataCriacao": "2026-10-20T10:00:00.000Z"
+  },
+  {
+    "id": 2,
+    "numeroAluno": "12345",
+    "titulo": "Alargamento do horário da biblioteca em época de exames",
+    "descricao": "A biblioteca devia estar aberta até às 23h durante as semanas de exames.",
+    "categoria": "pedagogia",
+    "estado": "em_analise",
+    "dataCriacao": "2026-10-21T14:30:00.000Z"
+  },
+  {
+    "id": 3,
+    "numeroAluno": "67890",
+    "titulo": "Reposição de equipamento de rede no laboratório 2",
+    "descricao": "Os cabos de rede de várias bancadas apresentam mau contacto.",
+    "categoria": "infraestruturas",
+    "estado": "aceite",
+    "dataCriacao": "2026-10-22T09:15:00.000Z"
+  },
+  {
+    "id": 4,
+    "numeroAluno": "67890",
+    "titulo": "Micro-ondas adicional na área de refeições",
+    "descricao": "Apenas dois micro-ondas provocam filas extensas à hora de almoço.",
+    "categoria": "cantina",
+    "estado": "rejeitada",
+    "dataCriacao": "2026-10-23T12:45:00.000Z"
+  }
+]
