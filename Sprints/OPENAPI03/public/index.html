@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal de Sugestões · ESTGV</title>
+  <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Portal de Sugestões</h1>
+      <p class="subtitulo">Aplicações para a Internet III · ESTGV</p>
+    </header>
+
+    <!-- Zona de mensagens para erros e avisos -->
+    <div id="zona-mensagens" role="alert" class="alerta" hidden>
+      <span class="alerta-icone" aria-hidden="true">[!]</span>
+      <span id="texto-mensagem"></span>
+    </div>
+
+    <!-- Área 1: Entrada (Formulário de Autenticação) -->
+    <section id="area-entrada">
+      <h2>Iniciar Sessão</h2>
+      <form id="form-login" novalidate>
+        <div class="campo">
+          <label for="campo-utilizador">Utilizador (Nº de Aluno ou nome.apelido):</label>
+          <input type="text" id="campo-utilizador" name="utilizador" autocomplete="username" placeholder="ex: 12345 ou rita.sousa" required>
+        </div>
+        <div class="campo">
+          <label for="campo-palavra-passe">Palavra-passe:</label>
+          <input type="password" id="campo-palavra-passe" name="palavraPasse" autocomplete="current-password" placeholder="mínimo 8 caracteres" required>
+        </div>
+        <button type="submit" id="btn-entrar" class="btn btn-primario">Entrar</button>
+      </form>
+    </section>
+
+    <!-- Área 2: Sessão Ativa (Inicialmente oculta com atributo hidden) -->
+    <section id="area-sessao" hidden>
+      <div class="painel-sessao">
+        <h2>Sessão Ativa</h2>
+        <div class="detalhes-utilizador">
+          <p><strong>Utilizador:</strong> <span id="sessao-sub"></span></p>
+          <p><strong>Nome:</strong> <span id="sessao-nome"></span></p>
+          <p><strong>Papel:</strong> <span id="sessao-papel" class="badge"></span></p>
+          <p><strong>Hora de expiração:</strong> <span id="sessao-expiracao"></span></p>
+          <p><strong>Tempo remanescente:</strong> <span id="sessao-contagem" class="contador"></span></p>
+        </div>
+
+        <div class="acoes-sessao">
+          <button id="btn-sugestoes" class="btn btn-secundario">As minhas sugestões</button>
+          <button id="btn-terminar" class="btn btn-perigo">Terminar sessão</button>
+        </div>
+      </div>
+
+      <div class="bloco-sugestoes">
+        <h3>Lista de Sugestões</h3>
+        <div id="lista-sugestoes" class="grelha-sugestoes">
+          <p class="estado-lista">Clique no botão acima para carregar as sugestões.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
