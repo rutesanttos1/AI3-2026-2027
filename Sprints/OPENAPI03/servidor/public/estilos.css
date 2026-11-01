@@ -259,3 +259,137 @@ button:focus-visible {
     width: 100%;
   }
 }
+/* ------------------------------------------------------------------ */
+/* API03 · Campos adicionais (select e textarea)                       */
+/* ------------------------------------------------------------------ */
+select,
+textarea {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1rem;
+  font-family: inherit;
+  border: 1px solid #cbd5e0;
+  border-radius: 6px;
+  background-color: #ffffff;
+  color: #2d3748;
+}
+
+textarea {
+  resize: vertical;
+}
+
+select:focus,
+select:focus-visible,
+textarea:focus,
+textarea:focus-visible {
+  outline: 3px solid #3182ce;
+  outline-offset: 2px;
+  border-color: #3182ce;
+}
+
+/* Nova sugestão */
+.bloco-nova-sugestao {
+  border-top: 2px solid #e2e8f0;
+  padding-top: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.mensagem-sucesso {
+  margin-top: 0.75rem;
+  color: #276749;
+  font-weight: 600;
+}
+
+/* Configurações */
+.zona-configuracoes {
+  border-top: 2px solid #e2e8f0;
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+}
+
+.grelha-configuracoes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0 1rem;
+}
+
+/* ------------------------------------------------------------------ */
+/* API03 · Tema escuro (aplicado com data-tema="escuro" no <html>)     */
+/* ------------------------------------------------------------------ */
+[data-tema="escuro"] {
+  color-scheme: dark;
+}
+
+[data-tema="escuro"] body {
+  background-color: #12161c;
+  color: #e2e8f0;
+}
+
+[data-tema="escuro"] .container {
+  background-color: #1c222b;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+[data-tema="escuro"] header,
+[data-tema="escuro"] .bloco-sugestoes,
+[data-tema="escuro"] .bloco-nova-sugestao,
+[data-tema="escuro"] .zona-configuracoes {
+  border-color: #2d3748;
+}
+
+[data-tema="escuro"] h1 {
+  color: #90cdf4;
+}
+
+[data-tema="escuro"] h2,
+[data-tema="escuro"] h3,
+[data-tema="escuro"] .cartao-titulo {
+  color: #edf2f7;
+}
+
+[data-tema="escuro"] label,
+[data-tema="escuro"] .cartao-meta,
+[data-tema="escuro"] .subtitulo,
+[data-tema="escuro"] .estado-lista {
+  color: #a0aec0;
+}
+
+[data-tema="escuro"] input[type="text"],
+[data-tema="escuro"] input[type="password"],
+[data-tema="escuro"] select,
+[data-tema="escuro"] textarea {
+  background-color: #12161c;
+  border-color: #4a5568;
+  color: #edf2f7;
+}
+
+[data-tema="escuro"] .painel-sessao {
+  background-color: #252d38;
+}
+
+[data-tema="escuro"] .cartao-sugestao {
+  background-color: #252d38;
+  border-color: #2d3748;
+  border-left-color: #63b3ed;
+}
+
+[data-tema="escuro"] .cartao-categoria {
+  background-color: #2d3748;
+}
+
+[data-tema="escuro"] .cartao-estado {
+  color: #90cdf4;
+}
+
+[data-tema="escuro"] .contador {
+  color: #fc8181;
+}
+
+[data-tema="escuro"] .mensagem-sucesso {
+  color: #68d391;
+}
+
+[data-tema="escuro"] .alerta {
+  background-color: #2a1a1a;
+  color: #feb2b2;
+}

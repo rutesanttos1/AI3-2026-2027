@@ -19,8 +19,8 @@
       <span id="texto-mensagem"></span>
     </div>
 
-    <!-- Área 1: Entrada (Formulário de Autenticação) -->
-    <section id="area-entrada">
+    <!-- Área 1: Entrada (oculta até se saber, com GET /v2/sessao, se já existe sessão) -->
+    <section id="area-entrada" hidden>
       <h2>Iniciar Sessão</h2>
       <form id="form-login" novalidate>
         <div class="campo">
@@ -35,7 +35,7 @@
       </form>
     </section>
 
-    <!-- Área 2: Sessão Ativa (Inicialmente oculta com atributo hidden) -->
+    <!-- Área 2: Sessão Ativa -->
     <section id="area-sessao" hidden>
       <div class="painel-sessao">
         <h2>Sessão Ativa</h2>
@@ -53,10 +53,59 @@
         </div>
       </div>
 
+      <!-- Nova sugestão (apenas para alunos); o rascunho fica em sessionStorage -->
+      <div id="bloco-nova-sugestao" class="bloco-nova-sugestao" hidden>
+        <h3>Nova sugestão</h3>
+        <form id="form-nova-sugestao" novalidate>
+          <div class="campo">
+            <label for="campo-titulo">Título:</label>
+            <input type="text" id="campo-titulo" name="titulo" minlength="3" maxlength="100" required>
+          </div>
+          <div class="campo">
+            <label for="campo-descricao">Descrição:</label>
+            <textarea id="campo-descricao" name="descricao" rows="4" minlength="10" maxlength="1000" required></textarea>
+          </div>
+          <div class="campo">
+            <label for="campo-categoria">Categoria:</label>
+            <select id="campo-categoria" name="categoria" required>
+              <option value="">Escolha uma categoria</option>
+              <option value="infraestruturas">Infraestruturas</option>
+              <option value="pedagogia">Pedagogia</option>
+              <option value="cantina">Cantina</option>
+              <option value="convivio">Convívio</option>
+              <option value="outros">Outros</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primario">Submeter sugestão</button>
+          <p id="estado-nova-sugestao" class="mensagem-sucesso" role="status" hidden></p>
+        </form>
+      </div>
+
       <div class="bloco-sugestoes">
         <h3>Lista de Sugestões</h3>
         <div id="lista-sugestoes" class="grelha-sugestoes">
           <p class="estado-lista">Clique no botão acima para carregar as sugestões.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Configurações (sempre visível); guardadas em localStorage -->
+    <section id="area-configuracoes" class="zona-configuracoes" aria-labelledby="titulo-configuracoes">
+      <h2 id="titulo-configuracoes">Configurações</h2>
+      <div class="grelha-configuracoes">
+        <div class="campo">
+          <label for="config-tema">Tema:</label>
+          <select id="config-tema">
+            <option value="claro">Claro</option>
+            <option value="escuro">Escuro</option>
+          </select>
+        </div>
+        <div class="campo">
+          <label for="config-ordenacao">Ordenação das sugestões:</label>
+          <select id="config-ordenacao">
+            <option value="recentes">Mais recentes primeiro</option>
+            <option value="estado">Por estado</option>
+          </select>
         </div>
       </div>
     </section>

@@ -1,7 +1,15 @@
-// Variável de módulo que conserva o token em memória volátil
-// (Nunca armazenado em localStorage ou sessionStorage)
-let tokenAtual = null;
+import { lerConfiguracoes, guardarConfiguracoes } from './configuracoes.js';
+
+// O token deixou de existir no cliente: está no cookie sessao (HttpOnly),
+// que o browser envia sozinho e que o JavaScript não consegue ler.
+// Do lado do cliente fica apenas a Sessao devolvida pelo servidor.
+
+const CHAVE_RASCUNHO = 'rascunhoSugestao';
+const ORDEM_ESTADOS = ['submetida', 'em_analise', 'aceite', 'rejeitada'];
+
 let temporizadorExpiracao = null;
+let sugestoesCarregadas = null; // última lista obtida, para reordenar sem novo pedido
+let configuracoes = lerConfiguracoes();
 
 // Elementos da interface
 const zonaMensagens = document.getElementById('zona-mensagens');
@@ -23,103 +31,145 @@ const btnSugestoes = document.getElementById('btn-sugestoes');
 const btnTerminar = document.getElementById('btn-terminar');
 const listaSugestoes = document.getElementById('lista-sugestoes');
 
-/**
- * Apresenta uma mensagem na zona de alertas
- */
-function mostrarMensagem(texto) {
-  textoMensagem.textContent = texto;
+const blocoNovaSugestao = document.getElementById('bloco-nova-sugestao');
+const formNovaSugestao = document.getElementById('form-nova-sugestao');
+const campoTitulo = document.getElementById('campo-titulo');
+const campoDescricao = document.getElementById('campo-descricao');
+const campoCategoria = document.getElementById('campo-categoria');
+const estadoNovaSugestao = document.getElementById('estado-nova-sugestao');
+
+const selectTema = document.getElementById('config-tema');
+const selectOrdenacao = document.getElementById('config-ordenacao');
+
+/* ------------------------------------------------------------------ */
+/* Mensagens                                                           */
+/* ------------------------------------------------------------------ */
+
+function mostrarMensagem(texto, detalhes = []) {
+  textoMensagem.textContent = detalhes.length > 0 ? `${texto} ${detalhes.join(' ')}` : texto;
   zonaMensagens.hidden = false;
 }
 
-/**
- * Limpa a zona de mensagens
- */
 function limparMensagem() {
   textoMensagem.textContent = '';
   zonaMensagens.hidden = true;
 }
 
-/**
- * Descodifica o payload de um token JWT em formato UTF-8
- * @param {string} token
- * @returns {Object} Payload em formato JSON
- */
-export function descodificarPayload(token) {
-  if (!token || typeof token !== 'string') {
-    throw new Error('Token ausente ou com tipo incorreto.');
+/* ------------------------------------------------------------------ */
+/* Configurações (localStorage)                                        */
+/* ------------------------------------------------------------------ */
+
+function aplicarConfiguracoes() {
+  document.documentElement.dataset.tema = configuracoes.tema;
+  selectTema.value = configuracoes.tema;
+  selectOrdenacao.value = configuracoes.ordenacao;
+
+  // Se já houver sugestões no ecrã, voltar a mostrá-las com a nova ordenação
+  if (sugestoesCarregadas) {
+    mostrarSugestoes(sugestoesCarregadas);
   }
-
-  const partes = token.split('.');
-  if (partes.length !== 3) {
-    throw new Error('Estrutura de token JWT inválida (deve conter 3 partes).');
-  }
-
-  // Converter base64url para base64 com padding adequado
-  let base64 = partes[1].replace(/-/g, '+').replace(/_/g, '/');
-  while (base64.length % 4 !== 0) {
-    base64 += '=';
-  }
-
-  // Descodificar e tratar os bytes como UTF-8
-  const binaryString = atob(base64);
-  const bytes = Uint8Array.from(binaryString, char => char.charCodeAt(0));
-  const jsonString = new TextDecoder('utf-8').decode(bytes);
-
-  return JSON.parse(jsonString);
 }
 
-/**
- * Efetua um pedido HTTP autenticado com o esquema Bearer
- * @param {string} url
- * @returns {Promise<any|null>}
- */
-export async function pedidoAutenticado(url) {
-  if (!tokenAtual) {
-    terminarSessao('Sessão expirada. É necessária nova autenticação.');
-    return null;
-  }
+function alterarConfiguracao(opcao, valor) {
+  configuracoes = { ...configuracoes, [opcao]: valor };
+  guardarConfiguracoes(configuracoes); // guardar...
+  aplicarConfiguracoes();               // ...e aplicar de imediato
+}
 
+selectTema.addEventListener('change', () => alterarConfiguracao('tema', selectTema.value));
+selectOrdenacao.addEventListener('change', () => alterarConfiguracao('ordenacao', selectOrdenacao.value));
+
+/* ------------------------------------------------------------------ */
+/* Rascunho da nova sugestão (sessionStorage)                          */
+/* ------------------------------------------------------------------ */
+
+function guardarRascunho() {
+  const rascunho = {
+    titulo: campoTitulo.value,
+    descricao: campoDescricao.value,
+    categoria: campoCategoria.value
+  };
   try {
-    const resposta = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${tokenAtual}`
-      }
-    });
+    sessionStorage.setItem(CHAVE_RASCUNHO, JSON.stringify(rascunho));
+  } catch {
+    // sessionStorage indisponível: o rascunho não é guardado
+  }
+}
 
-    if (resposta.status === 401) {
-      terminarSessao('Sessão expirada. É necessária nova autenticação.');
-      return null;
-    }
+function reporRascunho() {
+  let rascunho = null;
+  try {
+    rascunho = JSON.parse(sessionStorage.getItem(CHAVE_RASCUNHO));
+  } catch {
+    rascunho = null;
+  }
 
-    if (!resposta.ok) {
-      const corpoErro = await resposta.json().catch(() => ({ erro: 'Falha no pedido.' }));
-      mostrarMensagem(corpoErro.erro || `Erro HTTP ${resposta.status}`);
-      return null;
-    }
+  if (!rascunho || typeof rascunho !== 'object') {
+    return;
+  }
 
-    return await resposta.json();
-  } catch (erroRede) {
-    mostrarMensagem('Erro de comunicação de rede ao contactar a API.');
+  // O valor pode ter sido alterado à mão: aceitar apenas texto
+  campoTitulo.value = typeof rascunho.titulo === 'string' ? rascunho.titulo : '';
+  campoDescricao.value = typeof rascunho.descricao === 'string' ? rascunho.descricao : '';
+
+  campoCategoria.value = typeof rascunho.categoria === 'string' ? rascunho.categoria : '';
+  if (campoCategoria.value !== rascunho.categoria) {
+    campoCategoria.value = ''; // categoria inexistente na lista
+  }
+}
+
+function apagarRascunho() {
+  try {
+    sessionStorage.removeItem(CHAVE_RASCUNHO);
+  } catch {
+    // nada a fazer
+  }
+  formNovaSugestao.reset();
+}
+
+// Guardar enquanto o aluno escreve (input) e quando muda a categoria (change)
+formNovaSugestao.addEventListener('input', guardarRascunho);
+formNovaSugestao.addEventListener('change', guardarRascunho);
+
+/* ------------------------------------------------------------------ */
+/* Pedidos à API                                                       */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Faz um pedido à API. O cookie sessao é enviado automaticamente pelo browser
+ * (mesma origem); não há cabeçalho Authorization.
+ * @returns {Promise<Response|null>} null em caso de erro de rede
+ */
+async function pedirApi(url, opcoes = {}) {
+  try {
+    return await fetch(url, { credentials: 'same-origin', ...opcoes });
+  } catch {
+    mostrarMensagem('Não foi possível estabelecer ligação ao servidor. Verifique a rede.');
     return null;
   }
 }
 
+async function lerErro(resposta) {
+  return resposta.json().catch(() => ({ erro: `Erro HTTP ${resposta.status}` }));
+}
+
+/* ------------------------------------------------------------------ */
+/* Sessão (cookie)                                                     */
+/* ------------------------------------------------------------------ */
+
 /**
- * Inicia o relógio decrescente até à expiração do token
- * @param {number} instanteExpSegundos
+ * Inicia o relógio decrescente até à expiração da sessão
+ * @param {number} instanteExpiracaoMs - instante de expiração em milissegundos
  */
-function iniciarContador(instanteExpSegundos) {
+function iniciarContador(instanteExpiracaoMs) {
   if (temporizadorExpiracao) {
     clearInterval(temporizadorExpiracao);
   }
 
   const atualizar = () => {
-    const agoraSegundos = Math.floor(Date.now() / 1000);
-    const segundosRestantes = instanteExpSegundos - agoraSegundos;
+    const segundosRestantes = Math.floor((instanteExpiracaoMs - Date.now()) / 1000);
 
     if (segundosRestantes <= 0) {
-      clearInterval(temporizadorExpiracao);
       sessaoContagem.textContent = '00:00 (Expirado)';
       terminarSessao('Sessão expirada. É necessária nova autenticação.');
       return;
@@ -135,22 +185,53 @@ function iniciarContador(instanteExpSegundos) {
 }
 
 /**
- * Termina a sessão do utilizador e restaura o ecrã de entrada
+ * Mostra a área de sessão com os dados devolvidos pelo servidor (schema Sessao).
+ * @param {{ utilizador: string, nome: string, papel: string, expiracao: string }} sessao
+ */
+function mostrarSessao(sessao) {
+  campoPalavraPasse.value = '';
+
+  sessaoSub.textContent = sessao.utilizador;
+  sessaoNome.textContent = sessao.nome;
+  sessaoPapel.textContent = sessao.papel;
+
+  const dataExpiracao = new Date(sessao.expiracao);
+  sessaoExpiracao.textContent = dataExpiracao.toLocaleTimeString('pt-PT');
+
+  btnSugestoes.textContent = sessao.papel === 'servicos' ? 'Todas as sugestões' : 'As minhas sugestões';
+
+  // Formulário «Nova sugestão» apenas para alunos; ao voltar a ser apresentado, repõe o rascunho
+  const ehAluno = sessao.papel === 'aluno';
+  blocoNovaSugestao.hidden = !ehAluno;
+  estadoNovaSugestao.hidden = true;
+  if (ehAluno) {
+    reporRascunho();
+  }
+
+  areaEntrada.hidden = true;
+  areaSessao.hidden = false;
+
+  iniciarContador(dataExpiracao.getTime());
+}
+
+/**
+ * Termina a sessão no cliente e volta ao ecrã de entrada.
+ * O rascunho é apagado: pertence à sessão que terminou.
  * @param {string|null} mensagemAviso
  */
 function terminarSessao(mensagemAviso = null) {
-  tokenAtual = null;
   if (temporizadorExpiracao) {
     clearInterval(temporizadorExpiracao);
     temporizadorExpiracao = null;
   }
 
-  // Repor formulário
+  apagarRascunho();
+  sugestoesCarregadas = null;
+
   campoPalavraPasse.value = '';
   areaSessao.hidden = true;
   areaEntrada.hidden = false;
 
-  // Limpar lista de sugestões
   listaSugestoes.replaceChildren();
   const avisoLista = document.createElement('p');
   avisoLista.className = 'estado-lista';
@@ -164,7 +245,22 @@ function terminarSessao(mensagemAviso = null) {
   }
 }
 
-// Submissão do formulário de autenticação
+/**
+ * Ao abrir a página: GET /v2/sessao
+ * - 200: já existe sessão (cookie válido) -> área de sessão
+ * - 401: não existe sessão -> formulário de entrada
+ */
+async function verificarSessao() {
+  const resposta = await pedirApi('/v2/sessao');
+
+  if (resposta && resposta.status === 200) {
+    mostrarSessao(await resposta.json());
+  } else {
+    terminarSessao();
+  }
+}
+
+// Entrar: POST /v2/sessao (o servidor responde com Set-Cookie)
 formLogin.addEventListener('submit', async (evento) => {
   evento.preventDefault();
   limparMensagem();
@@ -172,68 +268,55 @@ formLogin.addEventListener('submit', async (evento) => {
   const utilizador = campoUtilizador.value.trim();
   const palavraPasse = campoPalavraPasse.value;
 
-  try {
-    const resposta = await fetch('/v2/tokens', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ utilizador, palavraPasse })
-    });
+  const resposta = await pedirApi('/v2/sessao', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ utilizador, palavraPasse })
+  });
 
-    if (resposta.status === 200) {
-      const dados = await resposta.json();
-      tokenAtual = dados.token;
-
-      // Limpar campo da palavra-passe de imediato
-      campoPalavraPasse.value = '';
-
-      // Descodificar e apresentar dados do payload
-      const payload = descodificarPayload(tokenAtual);
-      sessaoSub.textContent = payload.sub;
-      sessaoNome.textContent = payload.nome;
-      sessaoPapel.textContent = payload.papel;
-
-      const dataExp = new Date(payload.exp * 1000);
-      sessaoExpiracao.textContent = dataExp.toLocaleTimeString();
-
-      // Ajustar texto do botão de acordo com o papel
-      if (payload.papel === 'servicos') {
-        btnSugestoes.textContent = 'Todas as sugestões';
-      } else {
-        btnSugestoes.textContent = 'As minhas sugestões';
-      }
-
-      // Alternar ecrãs
-      areaEntrada.hidden = true;
-      areaSessao.hidden = false;
-
-      // Iniciar temporizador
-      iniciarContador(payload.exp);
-    } else if (resposta.status === 400 || resposta.status === 401) {
-      const erroJson = await resposta.json().catch(() => ({ erro: 'Erro na autenticação' }));
-      // Apresenta mensagem do Erro sem distinguir utilizador inexistente de palavra-passe errada
-      mostrarMensagem(erroJson.erro || 'Falha na autenticação.');
-    } else {
-      mostrarMensagem('Ocorreu um erro inesperado no servidor.');
-    }
-  } catch (erroRede) {
-    mostrarMensagem('Não foi possível estabelecer ligação ao servidor. Verifique a rede.');
-  }
-});
-
-// Botão para listar sugestões
-btnSugestoes.addEventListener('click', async () => {
-  limparMensagem();
-  const dados = await pedidoAutenticado('/v2/sugestoes');
-
-  if (!dados || !dados.itens) {
+  if (!resposta) {
     return;
   }
 
+  if (resposta.status === 200) {
+    mostrarSessao(await resposta.json());
+  } else if (resposta.status === 400 || resposta.status === 401) {
+    const erro = await lerErro(resposta);
+    // Não distingue utilizador inexistente de palavra-passe errada
+    mostrarMensagem(erro.erro || 'Falha na autenticação.', erro.detalhes || []);
+  } else {
+    mostrarMensagem('Ocorreu um erro inesperado no servidor.');
+  }
+});
+
+// Terminar sessão: DELETE /v2/sessao (o servidor responde com Set-Cookie que apaga o cookie)
+btnTerminar.addEventListener('click', async () => {
+  await pedirApi('/v2/sessao', { method: 'DELETE' });
+  terminarSessao();
+});
+
+/* ------------------------------------------------------------------ */
+/* Sugestões                                                           */
+/* ------------------------------------------------------------------ */
+
+function ordenarSugestoes(itens) {
+  const maisRecentePrimeiro = (a, b) => Date.parse(b.dataCriacao) - Date.parse(a.dataCriacao);
+  const copia = [...itens];
+
+  if (configuracoes.ordenacao === 'estado') {
+    copia.sort((a, b) =>
+      ORDEM_ESTADOS.indexOf(a.estado) - ORDEM_ESTADOS.indexOf(b.estado) || maisRecentePrimeiro(a, b));
+  } else {
+    copia.sort(maisRecentePrimeiro);
+  }
+
+  return copia;
+}
+
+function mostrarSugestoes(itens) {
   listaSugestoes.replaceChildren();
 
-  if (dados.itens.length === 0) {
+  if (itens.length === 0) {
     const pVazio = document.createElement('p');
     pVazio.className = 'estado-lista';
     pVazio.textContent = 'Nenhuma sugestão encontrada.';
@@ -241,8 +324,8 @@ btnSugestoes.addEventListener('click', async () => {
     return;
   }
 
-  // Apresentar título, categoria e estado EXCLUSIVAMENTE com textContent (segurança contra XSS)
-  dados.itens.forEach(sugestao => {
+  // Conteúdo apresentado EXCLUSIVAMENTE com textContent (segurança contra XSS)
+  ordenarSugestoes(itens).forEach(sugestao => {
     const cartao = document.createElement('div');
     cartao.className = 'cartao-sugestao';
 
@@ -261,17 +344,78 @@ btnSugestoes.addEventListener('click', async () => {
     estadoEl.className = 'cartao-estado';
     estadoEl.textContent = `Estado: ${sugestao.estado}`;
 
-    metaEl.appendChild(categoriaEl);
-    metaEl.appendChild(estadoEl);
+    const dataEl = document.createElement('span');
+    dataEl.textContent = new Date(sugestao.dataCriacao).toLocaleDateString('pt-PT');
 
-    cartao.appendChild(tituloEl);
-    cartao.appendChild(metaEl);
-
+    metaEl.append(categoriaEl, estadoEl, dataEl);
+    cartao.append(tituloEl, metaEl);
     listaSugestoes.appendChild(cartao);
   });
+}
+
+async function carregarSugestoes() {
+  const resposta = await pedirApi('/v2/sugestoes');
+  if (!resposta) {
+    return;
+  }
+
+  if (resposta.status === 401) {
+    terminarSessao('Sessão expirada. É necessária nova autenticação.');
+    return;
+  }
+
+  if (!resposta.ok) {
+    const erro = await lerErro(resposta);
+    mostrarMensagem(erro.erro || `Erro HTTP ${resposta.status}`);
+    return;
+  }
+
+  const dados = await resposta.json();
+  sugestoesCarregadas = dados.itens || [];
+  mostrarSugestoes(sugestoesCarregadas);
+}
+
+btnSugestoes.addEventListener('click', () => {
+  limparMensagem();
+  carregarSugestoes();
 });
 
-// Botão para terminar sessão
-btnTerminar.addEventListener('click', () => {
-  terminarSessao();
+// Nova sugestão: POST /v2/sugestoes
+formNovaSugestao.addEventListener('submit', async (evento) => {
+  evento.preventDefault();
+  limparMensagem();
+  estadoNovaSugestao.hidden = true;
+
+  const resposta = await pedirApi('/v2/sugestoes', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      titulo: campoTitulo.value.trim(),
+      descricao: campoDescricao.value.trim(),
+      categoria: campoCategoria.value
+    })
+  });
+
+  if (!resposta) {
+    return; // erro de rede: o rascunho mantém-se
+  }
+
+  if (resposta.status === 201) {
+    apagarRascunho(); // sugestão criada: o rascunho deixa de fazer sentido
+    estadoNovaSugestao.textContent = 'Sugestão criada com sucesso.';
+    estadoNovaSugestao.hidden = false;
+    carregarSugestoes();
+  } else if (resposta.status === 401) {
+    terminarSessao('Sessão expirada. É necessária nova autenticação.');
+  } else {
+    const erro = await lerErro(resposta);
+    mostrarMensagem(erro.erro || `Erro HTTP ${resposta.status}`, erro.detalhes || []);
+  }
 });
+
+/* ------------------------------------------------------------------ */
+/* Arranque                                                            */
+/* ------------------------------------------------------------------ */
+
+aplicarConfiguracoes();
+verificarSessao();
