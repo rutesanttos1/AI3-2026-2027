@@ -1,0 +1,290 @@
+FICHA API03 · ARMAZENAMENTO NO BROWSER
+Respostas às perguntas do enunciado
+
+
+
+======================================================================
+DIAGNÓSTICO INICIAL
+======================================================================
+
+(a) Por que razão, na API02, é preciso voltar a entrar depois de recarregar a página?
+
+Na API02, o token é guardado numa variável do módulo JavaScript do cliente, ou seja, apenas
+em memória. Ao recarregar a página, o browser descarta o estado do documento anterior e volta
+a executar o script desde o início, pelo que a variável é reinicializada com o valor null.
+Como o token não fica guardado em nenhum mecanismo persistente, perde-se, e o utilizador tem
+de se autenticar novamente.
+
+(b) Qual a diferença entre localStorage e sessionStorage?
+
+Ambos guardam pares chave-valor em texto, associados à origem (protocolo, domínio e porta),
+e ambos são acessíveis pelo JavaScript da página. A diferença está na duração e no âmbito:
+- localStorage: os dados persistem até serem explicitamente apagados, mesmo depois de fechar
+  o browser, e são partilhados por todos os separadores da mesma origem.
+- sessionStorage: os dados pertencem a um único separador. Sobrevivem a um recarregamento da
+  página, mas são eliminados quando o separador é fechado e não são visíveis noutros
+  separadores.
+
+(c) Qual dos três mecanismos é enviado ao servidor sem o código da aplicação o pedir?
+
+O cookie. Depois de ser criado pelo servidor através do cabeçalho Set-Cookie, o browser
+envia-o automaticamente, no cabeçalho Cookie, em todos os pedidos que respeitem os seus
+atributos (neste caso, Path=/v2 e SameSite=Strict). O localStorage e o sessionStorage nunca
+são enviados ao servidor, a menos que a aplicação leia os valores e os inclua no pedido.
+
+
+======================================================================
+CA1 · CONTRATO
+======================================================================
+
+Onde está declarado o cookie no contrato?
+
+Em components.securitySchemes.cookieSessao, com type: apiKey, in: cookie e name: sessao. A
+description do esquema indica os atributos do cookie (Max-Age, Path, HttpOnly e SameSite).
+O esquema é ativado no security da raiz, juntamente com o tokenJWT, e aplica-se a todas as
+operações que não redefinem a segurança (por exemplo, GET /sessao e as operações de
+sugestões). As operações públicas, como POST /sessao e DELETE /sessao, têm security: [].
+
+Que diferença faz colocar tokenJWT e cookieSessao em dois elementos da lista security,
+ou no mesmo elemento?
+
+Os elementos da lista security são alternativas (relação OU): basta satisfazer um deles.
+Com dois elementos separados, o pedido é aceite se trouxer o token no cabeçalho Authorization
+ou no cookie sessao.
+Os esquemas colocados dentro do mesmo elemento são exigidos em simultâneo (relação E). Se
+ambos estivessem no mesmo elemento, cada pedido teria de enviar o token no cabeçalho e também
+no cookie, o que não corresponde ao comportamento pretendido.
+
+Por que razão a versão passa a 2.1.0, e não a 3.0.0? Um cliente da API02 continua a
+funcionar?
+
+Segundo o versionamento semântico, a versão major só muda quando há alterações que quebram
+a compatibilidade. Nesta ficha, as alterações são apenas aditivas: um novo esquema de
+segurança apresentado como alternativa, um novo schema (Sessao) e três novas operações em
+/sessao. Nenhuma operação, campo ou comportamento existente foi removido ou alterado de forma
+incompatível, pelo que se trata de uma alteração minor (2.0.0 para 2.1.0).
+Um cliente da API02 continua a funcionar, porque POST /tokens se mantém inalterado e o
+middleware exigirToken continua a aceitar o token no cabeçalho Authorization. O cookie só é
+consultado quando esse cabeçalho não existe.
+
+
+======================================================================
+CA2 · COOKIE DE SESSÃO
+======================================================================
+
+Atributos do cookie:
+- Max-Age=900: o cookie é válido durante 900 segundos (15 minutos), o mesmo período de
+  validade do token. No Express, a opção maxAge é indicada em milissegundos (900 * 1000), mas
+  o atributo Max-Age enviado no cabeçalho aparece em segundos.
+- Path=/v2: o cookie só é enviado em pedidos para endereços começados por /v2.
+- HttpOnly: o JavaScript da página não consegue ler o cookie.
+- SameSite=Strict: o cookie só é enviado em pedidos feitos a partir do próprio site.
+
+O JavaScript do cliente consegue ler o token? Então como sabe o nome do utilizador?
+
+Não. O cookie tem o atributo HttpOnly, pelo que não aparece em document.cookie e não pode ser
+lido nem alterado por scripts da página. O cliente obtém o nome, o papel e a hora de
+expiração através da resposta de POST /v2/sessao, ao entrar, e de GET /v2/sessao, ao abrir a
+página. Nesta segunda operação, o browser envia o cookie automaticamente; o servidor lê o
+token, verifica a assinatura e a validade e devolve um objeto Sessao, sem o token.
+
+Por que razão a sessão se mantém depois de recarregar a página, ao contrário da API02?
+
+Porque o token deixou de estar numa variável JavaScript e passou a estar num cookie, que o
+browser guarda independentemente do ciclo de vida da página. Ao recarregar, o cliente faz
+GET /v2/sessao; o browser envia o cookie e, enquanto o token for válido, o servidor responde
+200 com os dados da sessão, pelo que a área de sessão é apresentada sem nova autenticação.
+
+Depois de «Terminar sessão», o cookie desaparece do browser. Se alguém tiver copiado o seu
+valor antes, o servidor ainda o aceita? Porquê?
+
+Sim, aceita, até ao instante de expiração do token (exp). O DELETE /v2/sessao limita-se a
+enviar um Set-Cookie que leva o browser a apagar o cookie (valor vazio e data de validade no
+passado). O token JWT, no entanto, é autossuficiente (stateless): o servidor valida-o apenas
+pela assinatura e pela data de expiração, e não mantém qualquer registo de sessões ativas nem
+uma lista de tokens revogados. Uma cópia do valor obtida antes da saída continua, por isso,
+a ter assinatura válida e a estar dentro do prazo. Para impedir esta reutilização seria
+necessário guardar no servidor uma lista de tokens revogados (por exemplo, através de um
+identificador jti) ou adotar sessões guardadas no servidor. A validade curta (15 minutos)
+limita o período de exposição.
+
+
+======================================================================
+CA3 · CONFIGURAÇÕES EM LOCALSTORAGE
+======================================================================
+
+Por que razão as configurações ficam em localStorage e não em sessionStorage?
+
+As configurações (tema e ordenação) são preferências da interface que devem manter-se entre
+utilizações, inclusivamente depois de fechar e reabrir o browser, e ser iguais em todos os
+separadores. O localStorage cumpre ambos os requisitos. O sessionStorage obrigaria a escolher
+novamente as opções sempre que se abrisse um novo separador ou se fechasse o atual. O cookie
+também não é adequado, porque seria enviado ao servidor em todos os pedidos sem necessidade,
+uma vez que o servidor não utiliza estes dados.
+
+O que acontece se o valor guardado for alterado à mão para um valor inválido?
+
+O utilizador pode ver e alterar o valor nas ferramentas de programador, pelo que a aplicação
+não confia nele. A função lerConfiguracoes() valida o conteúdo: se a chave não existir, se o
+texto não for JSON válido ou se uma opção tiver um valor fora da tabela, usa o valor por
+omissão dessa opção. Por exemplo, com {"tema":"roxo"}, a página é apresentada com o tema
+claro e a ordenação "recentes". O valor inválido permanece no localStorage até o utilizador
+alterar uma opção, momento em que é substituído por um objeto válido.
+
+As configurações pertencem ao utilizador ou ao browser? Se a Ana e o Bruno usarem o mesmo
+computador, partilham-nas?
+
+Pertencem ao browser (mais precisamente, à origem da aplicação naquele perfil do browser), e
+não ao utilizador autenticado. O localStorage não depende da sessão. Por isso, se a Ana e o
+Bruno usarem o mesmo browser no mesmo computador, partilham as mesmas configurações: o que um
+alterar fica em vigor para o outro. Só não as partilhariam se usassem browsers ou perfis
+diferentes.
+
+
+======================================================================
+CA4 · RASCUNHO EM SESSIONSTORAGE
+======================================================================
+
+Por que razão o rascunho fica em sessionStorage e não em localStorage?
+
+O rascunho é um dado temporário, ligado à tarefa que o aluno está a realizar naquele
+separador. Deve sobreviver a um recarregamento acidental da página, mas não deve ficar
+guardado indefinidamente no browser nem surgir noutros separadores. Em localStorage, o texto
+permaneceria depois de fechar o browser e poderia ser visto pelo próximo utilizador do mesmo
+computador. Num cookie, seria enviado ao servidor em todos os pedidos sem necessidade e
+estaria sujeito ao limite de cerca de 4 KB.
+
+O que acontece ao rascunho quando se recarrega a página? E quando se abre a aplicação noutro
+separador?
+
+Ao recarregar, o rascunho mantém-se: o sessionStorage pertence ao separador e não é apagado
+pelo recarregamento. Como a sessão também se mantém (cookie), o formulário volta a ser
+apresentado e o conteúdo é reposto. Num novo separador, o rascunho não aparece, porque cada
+separador tem o seu próprio sessionStorage, que começa vazio. A exceção é a opção «Duplicar
+separador» do browser, que copia o sessionStorage para o novo separador.
+
+Por que razão o rascunho é apagado quando a sessão termina?
+
+Porque o rascunho pertence ao aluno que estava autenticado. Se não fosse apagado, outra
+pessoa que entrasse no mesmo separador veria o texto que o aluno anterior estava a escrever.
+Pela mesma razão, o rascunho também é apagado quando a sugestão é criada com sucesso, já que
+deixa de ter utilidade.
+
+
+======================================================================
+4.4 · VERIFICAÇÃO
+======================================================================
+
+Comandos (Windows: usar curl.exe; os corpos JSON ficam em ficheiros para evitar problemas
+com as aspas no terminal)
+
+  ana.json         {"utilizador":"12345","palavraPasse":"ana12345"}
+  ana-errada.json  {"utilizador":"12345","palavraPasse":"errada123"}
+  sugestao.json    {"titulo":"Mais bancos no pátio","descricao":"Precisamos de mais bancos no pátio.","categoria":"convivio"}
+
+  (confirmar as credenciais da Ana em dados/utilizadores.json)
+
+  T1  curl.exe -i -c cookies.txt -H "Content-Type: application/json" -d @ana.json http://localhost:3000/v2/sessao
+  T2  curl.exe -i -H "Content-Type: application/json" -d @ana-errada.json http://localhost:3000/v2/sessao
+  T3  curl.exe -i -b cookies.txt http://localhost:3000/v2/sessao
+  T4  curl.exe -i -b cookies.txt http://localhost:3000/v2/sugestoes
+  T5  curl.exe -i http://localhost:3000/v2/sugestoes
+      copy cookies.txt cookies-copia.txt     (guardar o valor antes de T7)
+  T6  curl.exe -i -b cookies.txt -H "Content-Type: application/json" -d @sugestao.json http://localhost:3000/v2/sugestoes
+  T7  curl.exe -i -b cookies.txt -c cookies.txt -X DELETE http://localhost:3000/v2/sessao
+  T8  curl.exe -i -b cookies-copia.txt http://localhost:3000/v2/sugestoes
+
+Resultados (teste de referência)
+
+  T1  200 OK
+      Set-Cookie: sessao=eyJ...; Max-Age=900; Path=/v2; Expires=...; HttpOnly; SameSite=Strict
+      Cache-Control: no-store
+      Corpo: {"utilizador":"12345","nome":"Ana Silva","papel":"aluno","expiracao":"..."}
+  T2  401 Unauthorized, sem Set-Cookie
+  T3  200 OK, com os dados da Ana (schema Sessao)
+  T4  200 OK, apenas as sugestões com numeroAluno "12345"
+  T5  401 Unauthorized, WWW-Authenticate: Bearer
+  T6  201 Created, Location: /v2/sugestoes/<id>
+  T7  204 No Content
+      Set-Cookie: sessao=; Path=/v2; Expires=Thu, 01 Jan 1970 00:00:00 GMT
+  T8  200 OK. O servidor aceita o valor copiado antes de T7, porque o token JWT continua com
+      assinatura válida e dentro do prazo de validade. O DELETE apenas pediu ao cliente que
+      apagasse o cookie; o servidor não guarda tokens revogados (ver CA2). Um pedido com o
+      ficheiro cookies.txt, atualizado em T7, já recebe 401.
+
+Browser (separadores Rede e Aplicação das ferramentas de programador)
+
+  (a) Em Aplicação > Cookies > http://localhost:3000 aparece o cookie sessao, com Path /v2,
+      validade de 15 minutos, a coluna HttpOnly assinalada e SameSite Strict.
+  (b) document.cookie devolve "" (texto vazio). O cookie sessao é HttpOnly e, por isso, não é
+      exposto ao JavaScript. Além disso, a página está em "/" e o cookie tem Path=/v2.
+  (c) Depois de recarregar, o separador Rede mostra GET /v2/sessao com o cabeçalho Cookie no
+      pedido e resposta 200; a área de sessão é apresentada sem nova autenticação.
+  (d) Depois de fechar e reabrir o browser, Aplicação > Armazenamento local mantém a chave
+      configuracoes e a página abre com o tema e a ordenação escolhidos.
+  (e) Com o valor alterado para {"tema":"roxo"} e a página recarregada, a interface é
+      apresentada com os valores por omissão (tema claro, ordenação "recentes"), e os
+      seletores mostram esses valores. Não ocorre qualquer erro.
+  (f) Depois de recarregar, o formulário «Nova sugestão» mantém o texto escrito (chave
+      rascunhoSugestao em Armazenamento de sessão). Num novo separador, a chave não existe e
+      o formulário aparece vazio.
+
+Tabela
+
+  Dado: token
+  Mecanismo usado: cookie sessao (HttpOnly, SameSite=Strict, Path=/v2)
+  Quanto tempo dura: 900 segundos (Max-Age), ou até a sessão ser terminada
+  Porque não se usou outro mecanismo: o localStorage e o sessionStorage são legíveis por
+  qualquer script da página, o que exporia o token, e obrigariam o cliente a enviá-lo
+  manualmente em cada pedido. O sessionStorage perder-se-ia, além disso, ao fechar o
+  separador e não seria partilhado entre separadores.
+
+  Dado: configurações
+  Mecanismo usado: localStorage (chave configuracoes)
+  Quanto tempo dura: até serem apagadas
+  Porque não se usou outro mecanismo: o sessionStorage perder-se-ia ao fechar o separador e
+  não seria partilhado entre separadores; o cookie seria enviado ao servidor em todos os
+  pedidos sem que este precise dos dados.
+
+  Dado: rascunho
+  Mecanismo usado: sessionStorage (chave rascunhoSugestao)
+  Quanto tempo dura: até o separador ser fechado; é apagado antes disso quando a sugestão é
+  criada ou a sessão termina
+  Porque não se usou outro mecanismo: o localStorage manteria o texto depois de fechar o
+  browser e torná-lo-ia visível noutros separadores e a outros utilizadores do mesmo
+  computador; o cookie seria enviado ao servidor sem necessidade e tem limite de tamanho.
+
+
+======================================================================
+4.5 · REFLEXÃO
+======================================================================
+
+Que vantagem tem o cookie em relação à variável usada na API02? E que desvantagem?
+
+Vantagem: o token sobrevive ao recarregamento da página e é partilhado entre separadores, e o
+browser envia-o automaticamente, pelo que o cliente deixa de ter de o gerir e de construir o
+cabeçalho Authorization. Com HttpOnly, o token também deixa de estar acessível ao JavaScript
+da página, o que reduz o risco de ser lido por um script malicioso.
+Desvantagem: como o cliente não consegue ler o token, é necessária uma operação adicional
+(GET /v2/sessao) para conhecer o utilizador e a hora de expiração. Por ser enviado
+automaticamente, o cookie pode ser incluído em pedidos que a aplicação não iniciou (risco
+mitigado aqui por SameSite=Strict). Além disso, terminar a sessão no cliente não invalida o
+token no servidor, como demonstra o teste T8.
+
+Em T8, o servidor aceitou o cookie depois de terminada a sessão? Porquê?
+
+Sim, respondeu 200. O token JWT é validado apenas pela assinatura e pela data de expiração, e
+o servidor não guarda estado sobre as sessões. O DELETE /v2/sessao apenas instruiu o browser
+(ou o curl) a apagar o cookie; não alterou nada no servidor. Uma cópia feita antes continua,
+por isso, válida até ao fim dos 15 minutos. Para a rejeitar, o servidor teria de manter uma
+lista de tokens revogados ou usar sessões guardadas do lado do servidor.
+
+Se a Ana mudar de computador, as suas configurações acompanham-na? O que seria necessário
+para que isso acontecesse?
+
+Não. As configurações estão no localStorage do browser do primeiro computador, que é local e
+não é enviado ao servidor. Para que acompanhassem a Ana, teriam de ser guardadas no servidor,
+associadas à sua conta: por exemplo, através de um recurso protegido (GET e PUT
+/v2/configuracoes) que o cliente consultaria depois da autenticação e atualizaria a cada
+alteração. O localStorage poderia continuar a ser usado como cópia local, para aplicar as
+preferências de imediato enquanto o pedido ao servidor não termina.
