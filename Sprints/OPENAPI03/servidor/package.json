@@ -1,0 +1,15 @@
+{
+  "name": "servidor-autenticacao-jwt",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Servidor de autenticação JWT e API de sugestões da ESTGV",
+  "main": "servidor.js",
+  "scripts": {
+    "start": "node --env-file=.env servidor.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2"
+  }
+}
