@@ -46,7 +46,6 @@ const listaSugestoes = document.getElementById('lista-sugestoes');
 const seletorOrdenacao = document.getElementById('ordenacao');
 const botaoTerminar = document.getElementById('btn-terminar-sessao');
 const botaoEntrar = formularioLogin.querySelector('button[type="submit"]');
-
 const CHAVE_RASCUNHO = 'rascunho-sugestao';
 
 // Elementos adicionais

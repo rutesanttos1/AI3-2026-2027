@@ -43,5 +43,32 @@
     "categoria": "infraestruturas",
     "estado": "submetida",
     "dataCriacao": "2026-11-08T20:28:33.547Z"
+  },
+  {
+    "id": 6,
+    "numeroAluno": "12345",
+    "titulo": "AB,",
+    "descricao": "Esta é uma descrição suficientemente longa para o teste.",
+    "categoria": "infraestruturas",
+    "estado": "submetida",
+    "dataCriacao": "2026-11-08T21:35:02.707Z"
+  },
+  {
+    "id": 7,
+    "numeroAluno": "12345",
+    "titulo": "Teste de funcionamento",
+    "descricao": "Esta sugestão serve para confirmar que a criação funciona corretamente",
+    "categoria": "infraestruturas",
+    "estado": "submetida",
+    "dataCriacao": "2026-11-08T21:37:30.188Z"
+  },
+  {
+    "id": 8,
+    "numeroAluno": "12345",
+    "titulo": "AB,",
+    "descricao": "nl kjçnkj hkgfcxdscfvhgbnjkmlºçnjhbvgfcdxszv b",
+    "categoria": "pedagogia",
+    "estado": "submetida",
+    "dataCriacao": "2026-11-09T00:21:57.054Z"
   }
 ]
