@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#2457a6">
+    <title>Sistema de Sugestões ESTGV</title>
+    <link rel="stylesheet" href="estilos.css">
+    <script type="module" src="app.js"></script>
+</head>
+<body>
+    <header>
+        <h1>Sistema de Sugestões</h1>
+        <p>Escola Superior de Tecnologia e Gestão de Viseu</p>
+    </header>
+
+    <main>
+        <section id="estado-sessao" aria-live="polite">
+            <p>A verificar sessão...</p>
+        </section>
+
+        <section id="autenticacao">
+            <h2>Iniciar sessão</h2>
+
+            <form id="form-login">
+                <label for="utilizador">Número de aluno / Utilizador</label>
+                <input type="text" id="utilizador" name="utilizador" required>
+
+                <label for="palavra-passe">Palavra-passe</label>
+                <input type="password" id="palavra-passe" name="palavra-passe" required>
+
+                <button type="submit">Entrar</button>
+            </form>
+
+            <p id="mensagem-login" role="status"></p>
+        </section>
+
+        <section id="area-sugestoes" hidden>
+            <h2>Nova sugestão</h2>
+
+            <form id="form-sugestao">
+                <label for="titulo">Título</label>
+                <input type="text" id="titulo" name="titulo" minlength="3" maxlength="100" required>
+
+                <label for="descricao">Descrição</label>
+                <textarea id="descricao" name="descricao" minlength="10" maxlength="1000" required></textarea>
+
+                <label for="categoria">Categoria</label>
+                <select id="categoria" name="categoria" required>
+                    <option value="">A carregar categorias...</option>
+                </select>
+
+                <button type="submit">Enviar sugestão</button>
+            </form>
+
+            <p id="mensagem-sugestao" role="status"></p>
+            
+            <h2>As minhas sugestões</h2>
+
+<label for="ordenacao">Ordenar por:</label>
+<select id="ordenacao">
+    <option value="recentes">Mais recentes</option>
+    <option value="estado">Estado</option>
+</select>
+
+<div id="lista-sugestoes"></div>
+
+            <button type="button" id="btn-terminar-sessao">Terminar sessão</button>
+        </section>
+    </main>
+
+    <footer>
+        <p>Projeto académico — AI3</p>
+    </footer>
+</body>
+</html>
