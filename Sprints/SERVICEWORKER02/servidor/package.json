@@ -1,0 +1,15 @@
+{
+  "name": "api04-autenticacao",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "API de autenticação com Service Worker e IndexedDB",
+  "main": "servidor.js",
+  "scripts": {
+    "start": "node --env-file=.env servidor.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "express": "^4.22.3",
+    "jsonwebtoken": "^9.0.3"
+  }
+}

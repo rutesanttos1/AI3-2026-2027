@@ -1,0 +1,121 @@
+[
+  [
+    "12345:a1e5cd51-6fe5-4646-9c45-92fa6c555379",
+    {
+      "corpo": "{\"titulo\":\"Melhorar a rede Wi-Fi\",\"descricao\":\"Gostaria que a rede Wi-Fi da biblioteca fosse melhorada.\",\"categoria\":\"infraestruturas\"}",
+      "sugestao": {
+        "id": 12,
+        "numeroAluno": "12345",
+        "titulo": "Melhorar a rede Wi-Fi",
+        "descricao": "Gostaria que a rede Wi-Fi da biblioteca fosse melhorada.",
+        "categoria": "infraestruturas",
+        "estado": "submetida",
+        "versao": 3,
+        "dataCriacao": "2026-11-12T02:11:14.672Z"
+      },
+      "dataRegisto": 1794449474673
+    }
+  ],
+  [
+    "12345:424ba231-e99f-4139-857f-715670def431",
+    {
+      "corpo": "{\"titulo\":\"Melhorar a biblioteca\",\"descricao\":\"Gostaria que a biblioteca tivesse mais espa�os de estudo.\",\"categoria\":\"infraestruturas\"}",
+      "sugestao": {
+        "id": 14,
+        "numeroAluno": "12345",
+        "titulo": "Melhorar a biblioteca",
+        "descricao": "Gostaria que a biblioteca tivesse mais espa�os de estudo.",
+        "categoria": "infraestruturas",
+        "estado": "submetida",
+        "versao": 5,
+        "dataCriacao": "2026-11-12T02:31:53.406Z"
+      },
+      "dataRegisto": 1794450713407
+    }
+  ],
+  [
+    "12345:7cbcf571-2430-4ff9-8c15-aa9f71f330ed",
+    {
+      "corpo": "{\"titulo\":\"Tecnologias\",\"descricao\":\"Telemóveis, computadores\",\"categoria\":\"outros\"}",
+      "sugestao": {
+        "id": 22,
+        "numeroAluno": "12345",
+        "titulo": "Tecnologias",
+        "descricao": "Telemóveis, computadores",
+        "categoria": "outros",
+        "estado": "submetida",
+        "versao": 13,
+        "dataCriacao": "2026-11-12T14:11:18.861Z"
+      },
+      "dataRegisto": 1794492678862
+    }
+  ],
+  [
+    "12345:26f19fc4-f562-4d75-b723-e8ff05f45ccf",
+    {
+      "corpo": "{\"titulo\":\"Teste offline definitivo\",\"descricao\":\"Esta sugestão serve para verificar se a aplicação guarda os dados localmente quando não existe ligação à internet.\",\"categoria\":\"infraestruturas\"}",
+      "sugestao": {
+        "id": 28,
+        "numeroAluno": "12345",
+        "titulo": "Teste offline definitivo",
+        "descricao": "Esta sugestão serve para verificar se a aplicação guarda os dados localmente quando não existe ligação à internet.",
+        "categoria": "infraestruturas",
+        "estado": "submetida",
+        "versao": 19,
+        "dataCriacao": "2026-11-12T15:49:21.427Z"
+      },
+      "dataRegisto": 1794498561428
+    }
+  ],
+  [
+    "12345:1597faeb-b633-4bd6-af58-68b9c3ea3b27",
+    {
+      "corpo": "{\"titulo\":\"Teste captura Network 12\",\"descricao\":\"rtffguijnbhgchjkn\",\"categoria\":\"outros\"}",
+      "sugestao": {
+        "id": 29,
+        "numeroAluno": "12345",
+        "titulo": "Teste captura Network 12",
+        "descricao": "rtffguijnbhgchjkn",
+        "categoria": "outros",
+        "estado": "submetida",
+        "versao": 20,
+        "dataCriacao": "2026-11-12T15:56:49.149Z"
+      },
+      "dataRegisto": 1794499009150
+    }
+  ],
+  [
+    "12345:3869c002-ffcd-4aaf-88d2-ebcea9ab1eed",
+    {
+      "corpo": "{\"titulo\":\"xcgvhbjkl,mnkbhvg\",\"descricao\":\"dxcgvbhuklkmnjbh\",\"categoria\":\"outros\"}",
+      "sugestao": {
+        "id": 30,
+        "numeroAluno": "12345",
+        "titulo": "xcgvhbjkl,mnkbhvg",
+        "descricao": "dxcgvbhuklkmnjbh",
+        "categoria": "outros",
+        "estado": "submetida",
+        "versao": 21,
+        "dataCriacao": "2026-11-12T16:02:54.455Z"
+      },
+      "dataRegisto": 1794499374457
+    }
+  ],
+  [
+    "12345:48b74a87-f5cd-4b53-9782-a3aa0de19f9a",
+    {
+      "corpo": "{\"titulo\":\"fghjkljnhgvbn\",\"descricao\":\"dtuyhjdesd\",\"categoria\":\"outros\"}",
+      "sugestao": {
+        "id": 31,
+        "numeroAluno": "12345",
+        "titulo": "fghjkljnhgvbn",
+        "descricao": "dtuyhjdesd",
+        "categoria": "outros",
+        "estado": "submetida",
+        "versao": 22,
+        "dataCriacao": "2026-11-12T16:02:54.471Z"
+      },
+      "dataRegisto": 1794499374472
+    }
+  ]
+]

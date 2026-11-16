@@ -1,0 +1,303 @@
+[
+  {
+    "id": 1,
+    "numeroAluno": "12345",
+    "titulo": "Instalação de tomadas na sala de estudo",
+    "descricao": "É necessária a colocação de mais tomadas elétricas nas mesas centrais da sala de estudo.",
+    "categoria": "infraestruturas",
+    "estado": "submetida",
+    "dataCriacao": "2026-10-20T10:00:00.000Z"
+  },
+  {
+    "id": 2,
+    "numeroAluno": "12345",
+    "titulo": "Alargamento do horário da biblioteca em época de exames",
+    "descricao": "A biblioteca devia estar aberta até às 23h durante as semanas de exames.",
+    "categoria": "pedagogia",
+    "estado": "em_analise",
+    "dataCriacao": "2026-10-21T14:30:00.000Z"
+  },
+  {
+    "id": 3,
+    "numeroAluno": "67890",
+    "titulo": "Reposição de equipamento de rede no laboratório 2",
+    "descricao": "Os cabos de rede de várias bancadas apresentam mau contacto.",
+    "categoria": "infraestruturas",
+    "estado": "aceite",
+    "dataCriacao": "2026-10-22T09:15:00.000Z"
+  },
+  {
+    "id": 4,
+    "numeroAluno": "67890",
+    "titulo": "Micro-ondas adicional na área de refeições",
+    "descricao": "Apenas dois micro-ondas provocam filas extensas à hora de almoço.",
+    "categoria": "cantina",
+    "estado": "rejeitada",
+    "dataCriacao": "2026-10-23T12:45:00.000Z"
+  },
+  {
+    "id": 5,
+    "numeroAluno": "12345",
+    "titulo": "Melhorar os espaços de estudo",
+    "descricao": "Seria importante disponibilizar mais tomadas elétricas nas salas de estudo para os alunos poderem carregar os computadores.",
+    "categoria": "infraestruturas",
+    "estado": "submetida",
+    "dataCriacao": "2026-11-08T20:28:33.547Z"
+  },
+  {
+    "id": 6,
+    "numeroAluno": "12345",
+    "titulo": "AB,",
+    "descricao": "Esta é uma descrição suficientemente longa para o teste.",
+    "categoria": "infraestruturas",
+    "estado": "submetida",
+    "dataCriacao": "2026-11-08T21:35:02.707Z"
+  },
+  {
+    "id": 7,
+    "numeroAluno": "12345",
+    "titulo": "Teste de funcionamento",
+    "descricao": "Esta sugestão serve para confirmar que a criação funciona corretamente",
+    "categoria": "infraestruturas",
+    "estado": "submetida",
+    "dataCriacao": "2026-11-08T21:37:30.188Z"
+  },
+  {
+    "id": 8,
+    "numeroAluno": "12345",
+    "titulo": "AB,",
+    "descricao": "nl kjçnkj hkgfcxdscfvhgbnjkmlºçnjhbvgfcdxszv b",
+    "categoria": "pedagogia",
+    "estado": "submetida",
+    "dataCriacao": "2026-11-09T00:21:57.054Z"
+  },
+  {
+    "id": 9,
+    "numeroAluno": "12345",
+    "titulo": "AB,",
+    "descricao": "mmmmnjctreawsdguoipçkjhgxcfhgjkiçl",
+    "categoria": "cantina",
+    "estado": "submetida",
+    "dataCriacao": "2026-11-09T10:19:23.880Z"
+  },
+  {
+    "id": 10,
+    "numeroAluno": "12345",
+    "titulo": "Melhorar a biblioteca",
+    "descricao": "Gostaria que a biblioteca tivesse mais espaços de estudo.",
+    "categoria": "infraestruturas",
+    "estado": "submetida",
+    "versao": 1,
+    "dataCriacao": "2026-11-12T01:34:26.064Z"
+  },
+  {
+    "id": 11,
+    "numeroAluno": "12345",
+    "titulo": "Melhorar os computadores",
+    "descricao": "Gostaria que os computadores da biblioteca fossem atualizados.",
+    "categoria": "infraestruturas",
+    "estado": "submetida",
+    "versao": 2,
+    "dataCriacao": "2026-11-12T01:42:52.173Z"
+  },
+  {
+    "id": 12,
+    "numeroAluno": "12345",
+    "titulo": "Melhorar a rede Wi-Fi",
+    "descricao": "Gostaria que a rede Wi-Fi da biblioteca fosse melhorada.",
+    "categoria": "infraestruturas",
+    "estado": "submetida",
+    "versao": 3,
+    "dataCriacao": "2026-11-12T02:11:14.672Z"
+  },
+  {
+    "id": 13,
+    "numeroAluno": "12345",
+    "titulo": "Melhorar os espa�os de estudo",
+    "descricao": "Gostaria que existissem mais mesas na biblioteca.",
+    "categoria": "infraestruturas",
+    "estado": "submetida",
+    "versao": 4,
+    "dataCriacao": "2026-11-12T02:29:12.648Z"
+  },
+  {
+    "id": 14,
+    "numeroAluno": "12345",
+    "titulo": "Melhorar a biblioteca",
+    "descricao": "Gostaria que a biblioteca tivesse mais espa�os de estudo.",
+    "categoria": "infraestruturas",
+    "estado": "submetida",
+    "versao": 5,
+    "dataCriacao": "2026-11-12T02:31:53.406Z"
+  },
+  {
+    "id": 15,
+    "numeroAluno": "12345",
+    "titulo": "Melhorar o espaço de estudo",
+    "descricao": "Sugiro melhorar o espaço de estudo da biblioteca, acrescentando mesas e tomadas para os estudantes.",
+    "categoria": "infraestruturas",
+    "estado": "submetida",
+    "versao": 6,
+    "dataCriacao": "2026-11-12T03:23:38.989Z"
+  },
+  {
+    "id": 16,
+    "numeroAluno": "12345",
+    "titulo": "cfghjk",
+    "descricao": "asertyuiopjkhgfvcvgbh",
+    "categoria": "outros",
+    "estado": "submetida",
+    "versao": 7,
+    "dataCriacao": "2026-11-12T03:26:04.372Z"
+  },
+  {
+    "id": 17,
+    "numeroAluno": "12345",
+    "titulo": "Gnkxnaksx",
+    "descricao": "avhsbjdnekmn dke",
+    "categoria": "infraestruturas",
+    "estado": "submetida",
+    "versao": 8,
+    "dataCriacao": "2026-11-12T03:28:16.452Z"
+  },
+  {
+    "id": 18,
+    "numeroAluno": "12345",
+    "titulo": "vbnm",
+    "descricao": "fgbhnghjkljhgvbn",
+    "categoria": "convivio",
+    "estado": "submetida",
+    "versao": 9,
+    "dataCriacao": "2026-11-12T03:31:05.372Z"
+  },
+  {
+    "id": 19,
+    "numeroAluno": "12345",
+    "titulo": "Teste de sincronização",
+    "descricao": "Esta sugestão serve para testar o funcionamento offline.",
+    "categoria": "outros",
+    "estado": "submetida",
+    "versao": 10,
+    "dataCriacao": "2026-11-12T13:46:53.640Z"
+  },
+  {
+    "id": 20,
+    "numeroAluno": "12345",
+    "titulo": "Estudoss",
+    "descricao": "Gxb jnxkaklxnbhn",
+    "categoria": "convivio",
+    "estado": "submetida",
+    "versao": 11,
+    "dataCriacao": "2026-11-12T13:55:02.453Z"
+  },
+  {
+    "id": 21,
+    "numeroAluno": "12345",
+    "titulo": "Comida",
+    "descricao": "Hamburguer, pizza, maçã, legumes",
+    "categoria": "outros",
+    "estado": "submetida",
+    "versao": 12,
+    "dataCriacao": "2026-11-12T13:59:21.944Z"
+  },
+  {
+    "id": 22,
+    "numeroAluno": "12345",
+    "titulo": "Tecnologias",
+    "descricao": "Telemóveis, computadores",
+    "categoria": "outros",
+    "estado": "submetida",
+    "versao": 13,
+    "dataCriacao": "2026-11-12T14:11:18.861Z"
+  },
+  {
+    "id": 23,
+    "numeroAluno": "12345",
+    "titulo": "Teste de idempotência",
+    "descricao": "Esta sugestão serve para verificar se o servidor evita criar registos duplicados quando a resposta se perde.",
+    "categoria": "outros",
+    "estado": "submetida",
+    "versao": 14,
+    "dataCriacao": "2026-11-12T14:24:28.780Z"
+  },
+  {
+    "id": 24,
+    "numeroAluno": "12345",
+    "titulo": "Título: Teste offline idempotência",
+    "descricao": "Esta sugestão serve para testar a perda de resposta e evitar a criação de sugestões duplicadas.",
+    "categoria": "outros",
+    "estado": "submetida",
+    "versao": 15,
+    "dataCriacao": "2026-11-12T14:26:54.625Z"
+  },
+  {
+    "id": 25,
+    "numeroAluno": "12345",
+    "titulo": "Teste offline idempotência",
+    "descricao": "Esta sugestão serve para testar a perda de resposta e evitar a criação de sugestões duplicadas.",
+    "categoria": "outros",
+    "estado": "submetida",
+    "versao": 16,
+    "dataCriacao": "2026-11-12T14:27:21.009Z"
+  },
+  {
+    "id": 26,
+    "numeroAluno": "12345",
+    "titulo": "Melhorar a biblioteca da ESTGV",
+    "descricao": "Gostaria que a biblioteca tivesse mais espaços de estudo e mais tomadas para carregar os computadores.\n\n\n\n\n\n\nGostaria que a biblioteca tivesse mais espaços de estudo e mais tomadas para carregar os computadores.",
+    "categoria": "infraestruturas",
+    "estado": "submetida",
+    "versao": 17,
+    "dataCriacao": "2026-11-12T15:21:49.592Z"
+  },
+  {
+    "id": 27,
+    "numeroAluno": "12345",
+    "titulo": "Teste offline novembro",
+    "descricao": "Esta sugestão serve para verificar se a aplicação guarda os dados localmente quando não existe ligação ao servidor.",
+    "categoria": "infraestruturas",
+    "estado": "submetida",
+    "versao": 18,
+    "dataCriacao": "2026-11-12T15:32:18.604Z"
+  },
+  {
+    "id": 28,
+    "numeroAluno": "12345",
+    "titulo": "Teste offline definitivo",
+    "descricao": "Esta sugestão serve para verificar se a aplicação guarda os dados localmente quando não existe ligação à internet.",
+    "categoria": "infraestruturas",
+    "estado": "submetida",
+    "versao": 19,
+    "dataCriacao": "2026-11-12T15:49:21.427Z"
+  },
+  {
+    "id": 29,
+    "numeroAluno": "12345",
+    "titulo": "Teste captura Network 12",
+    "descricao": "rtffguijnbhgchjkn",
+    "categoria": "outros",
+    "estado": "submetida",
+    "versao": 20,
+    "dataCriacao": "2026-11-12T15:56:49.149Z"
+  },
+  {
+    "id": 30,
+    "numeroAluno": "12345",
+    "titulo": "xcgvhbjkl,mnkbhvg",
+    "descricao": "dxcgvbhuklkmnjbh",
+    "categoria": "outros",
+    "estado": "submetida",
+    "versao": 21,
+    "dataCriacao": "2026-11-12T16:02:54.455Z"
+  },
+  {
+    "id": 31,
+    "numeroAluno": "12345",
+    "titulo": "fghjkljnhgvbn",
+    "descricao": "dtuyhjdesd",
+    "categoria": "outros",
+    "estado": "submetida",
+    "versao": 22,
+    "dataCriacao": "2026-11-12T16:02:54.471Z"
+  }
+]
