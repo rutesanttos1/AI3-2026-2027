@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reporta</title>
+  <meta name="description" content="Comunique problemas na via pública, com ou sem ligação.">
+  <meta name="theme-color" content="#c2410c">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icones/icone-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="icones/icone-192.png">
+  <link rel="stylesheet" href="estilos.css">
+  <!-- Scripts clássicos: bd.js também é carregado pelo service worker com importScripts -->
+  <script src="bd.js" defer></script>
+  <script src="formulario.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="topo">
+    <h1>Reporta</h1>
+    <p id="estado-rede" class="estado-rede" role="status" aria-live="polite"></p>
+  </header>
+
+  <main>
+    <section aria-labelledby="titulo-comunicar">
+      <h2 id="titulo-comunicar">Comunicar um problema</h2>
+      <form id="formulario" novalidate>
+        <label for="categoria">Categoria</label>
+        <select id="categoria" name="categoria" required>
+          <option value="buraco">Buraco</option>
+          <option value="semaforo">Semáforo</option>
+          <option value="iluminacao">Iluminação</option>
+          <option value="sinalizacao">Sinalização</option>
+          <option value="outro">Outro</option>
+        </select>
+
+        <label for="descricao">Descrição</label>
+        <textarea id="descricao" name="descricao" minlength="10" maxlength="500" rows="3" required></textarea>
+
+        <label for="fotografia">Fotografia (opcional)</label>
+        <input id="fotografia" name="fotografia" type="file" accept="image/*" capture="environment">
+
+        <p id="localizacao" class="localizacao">Localização: por obter</p>
+
+        <button type="submit">Comunicar</button>
+      </form>
+      <div id="candidatas" aria-live="polite"></div>
+    </section>
+
+    <section aria-labelledby="titulo-minhas">
+      <h2 id="titulo-minhas">As minhas comunicações</h2>
+      <ul id="lista-minhas" class="lista">
+        <li class="vazio">Ainda não há comunicações.</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="rodape">
+    <small>Reporta · Aplicações para a Internet III</small>
+  </footer>
+</body>
+</html>
