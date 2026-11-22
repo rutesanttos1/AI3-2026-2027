@@ -1,0 +1,17 @@
+# Copiar para .env antes de arrancar:  copy .env.exemplo .env   (Windows)
+#                                      cp .env.exemplo .env     (Linux/macOS)
+# O ficheiro .env NÃO vai para o repositório.
+
+# Porto HTTP (opcional; por omissão 3000)
+# PORTO=3000
+
+# Valor esperado no cabeçalho X-Admin-Token de PATCH /v1/admin/ocorrencias/{id}
+ADMIN_TOKEN=trocar-por-um-segredo
+
+# Ensaios (desligados por omissão)
+# 1 = na primeira vez que cada Idempotency-Key é processada com sucesso, o servidor
+#     executa a operação e fecha a ligação (req.socket.destroy()) sem responder.
+SIMULAR_PERDA_RESPOSTA=0
+
+# n = os próximos n POST recebem 503 com Retry-After: 2, sem efeitos.
+SIMULAR_503=0

@@ -1,0 +1,754 @@
+openapi: 3.0.3
+info:
+  title: Reporta — API de ocorrências na via pública
+  version: 1.0.0
+  description: |
+    API REST da aplicação Reporta (PWA de gestão de ocorrências).
+
+    Cada comunicação de um cidadão pode **criar** uma ocorrência nova, **reforçar**
+    uma ocorrência semelhante já existente ou ser reconhecida como **já comunicada**
+    pelo mesmo cidadão (o contador `comunicacoes` não sobe).
+
+    Duas comunicações referem-se à mesma ocorrência quando têm a mesma categoria,
+    a ocorrência existente não está resolvida e a distância entre os pontos é menor
+    ou igual ao raio da categoria (ver `GET /v1/categorias`). A decisão final é
+    sempre tomada pelo servidor.
+
+    **Identificação do cidadão.** Nas operações protegidas, o cidadão identifica-se
+    pelo cabeçalho `X-Cidadao` (UUID gerado no dispositivo na primeira utilização).
+    Sem este cabeçalho, a resposta é `401`.
+
+    **Idempotência.** Os dois `POST` aceitam o cabeçalho opcional `Idempotency-Key`
+    (UUID gerado quando a pendente é criada). A chave é guardada por cidadão durante
+    24 horas, com o corpo recebido e a resposta dada, e só depois de a operação ter
+    sucesso. Uma chave repetida com o mesmo corpo devolve a resposta guardada com
+    `Idempotent-Replayed: true`; com outro corpo, `409`; uma chave que não seja UUID
+    dá `400`.
+
+    **Cursor de sincronização.** Cada criação, reforço ou mudança de estado atribui à
+    ocorrência uma nova `versao`, retirada de um contador do servidor que só cresce.
+servers:
+  - url: http://localhost:3000
+    description: Servidor de desenvolvimento
+tags:
+  - name: categorias
+    description: Categorias de ocorrência e respetivos raios
+  - name: ocorrencias
+    description: Comunicação, consulta e sincronização de ocorrências
+  - name: admin
+    description: Mudança de estado pelos serviços municipais (endpoint simplificado)
+
+paths:
+  /v1/categorias:
+    get:
+      tags: [categorias]
+      operationId: listarCategorias
+      summary: Lista as categorias, cada uma com o seu raio
+      security: []
+      responses:
+        '200':
+          description: Lista de categorias.
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/CacheControl'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Categoria'
+              example:
+                - { id: buraco, nome: Buraco, raio: 15 }
+                - { id: semaforo, nome: Semáforo, raio: 40 }
+                - { id: iluminacao, nome: Iluminação, raio: 20 }
+                - { id: sinalizacao, nome: Sinalização, raio: 20 }
+                - { id: outro, nome: Outro, raio: 10 }
+
+  /v1/ocorrencias/semelhantes:
+    get:
+      tags: [ocorrencias]
+      operationId: procurarSemelhantes
+      summary: Procura ocorrências candidatas antes de gravar uma comunicação
+      description: |
+        Devolve as ocorrências não resolvidas da mesma categoria cuja distância ao
+        ponto indicado é menor ou igual ao raio da categoria, por distância
+        crescente, no máximo 5. É uma ajuda ao cidadão, não uma garantia: o servidor
+        volta a procurar semelhantes quando recebe `POST /v1/ocorrencias`.
+      security: []
+      parameters:
+        - name: categoria
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/IdCategoria'
+        - name: lat
+          in: query
+          required: true
+          schema:
+            type: number
+            format: double
+            minimum: -90
+            maximum: 90
+          example: 40.281
+        - name: lng
+          in: query
+          required: true
+          schema:
+            type: number
+            format: double
+            minimum: -180
+            maximum: 180
+          example: -7.504
+      responses:
+        '200':
+          description: Candidatas, por distância crescente (no máximo 5; pode ser vazia).
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/CacheControl'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Candidatas'
+        '400':
+          $ref: '#/components/responses/PedidoInvalido'
+
+  /v1/ocorrencias:
+    get:
+      tags: [ocorrencias]
+      operationId: listarOcorrencias
+      summary: Lista as ocorrências não resolvidas dentro de um retângulo (para o mapa)
+      security: []
+      parameters:
+        - name: bbox
+          in: query
+          required: true
+          description: |
+            Retângulo geográfico no formato `oeste,sul,este,norte`
+            (lng mínima, lat mínima, lng máxima, lat máxima).
+          style: form
+          explode: false
+          schema:
+            type: array
+            minItems: 4
+            maxItems: 4
+            items:
+              type: number
+              format: double
+          example: [-7.52, 40.27, -7.49, 40.29]
+      responses:
+        '200':
+          description: Ocorrências não resolvidas dentro do retângulo.
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/CacheControl'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Ocorrencia'
+        '400':
+          $ref: '#/components/responses/PedidoInvalido'
+
+    post:
+      tags: [ocorrencias]
+      operationId: comunicarOcorrencia
+      summary: Comunica um problema (cria, reforça ou reconhece como já comunicado)
+      description: |
+        O servidor procura semelhantes, excluindo as ocorrências indicadas em
+        `recusadas`:
+
+        - se houver semelhante e o cidadão ainda não a tiver comunicado nem
+          reforçado, regista um reforço na mais próxima e responde `200` com
+          `resultado: "reforcada"`;
+        - se o cidadão já tiver comunicado ou reforçado essa ocorrência, responde
+          `200` com `resultado: "ja-comunicada"`, sem alterar o contador;
+        - caso contrário, cria a ocorrência com `comunicacoes = 1` e responde `201`.
+
+        Em todos os casos, `Location` aponta para a ocorrência resultante.
+      security:
+        - cidadao: []
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NovaOcorrencia'
+      responses:
+        '201':
+          description: Não havia semelhante; foi criada uma ocorrência nova.
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
+            Idempotent-Replayed:
+              $ref: '#/components/headers/IdempotentReplayed'
+            Cache-Control:
+              $ref: '#/components/headers/CacheControl'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultadoComunicacao'
+              examples:
+                criada:
+                  $ref: '#/components/examples/Criada'
+        '200':
+          description: |
+            A comunicação foi fundida numa ocorrência existente (`reforcada`) ou o
+            cidadão já a tinha comunicado (`ja-comunicada`).
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
+            Idempotent-Replayed:
+              $ref: '#/components/headers/IdempotentReplayed'
+            Cache-Control:
+              $ref: '#/components/headers/CacheControl'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultadoComunicacao'
+              examples:
+                reforcada:
+                  $ref: '#/components/examples/Reforcada'
+                jaComunicada:
+                  $ref: '#/components/examples/JaComunicada'
+        '400':
+          $ref: '#/components/responses/PedidoInvalido'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '409':
+          $ref: '#/components/responses/ConflitoIdempotencia'
+        '503':
+          $ref: '#/components/responses/Indisponivel'
+
+  /v1/ocorrencias/{id}/reforcos:
+    post:
+      tags: [ocorrencias]
+      operationId: reforcarOcorrencia
+      summary: Reforça uma ocorrência escolhida pelo cidadão («É esta»)
+      security:
+        - cidadao: []
+      parameters:
+        - $ref: '#/components/parameters/IdOcorrencia'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NovoReforco'
+      responses:
+        '201':
+          description: Reforço registado; o contador `comunicacoes` subiu uma unidade.
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
+            Idempotent-Replayed:
+              $ref: '#/components/headers/IdempotentReplayed'
+            Cache-Control:
+              $ref: '#/components/headers/CacheControl'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultadoComunicacao'
+              examples:
+                reforcada:
+                  $ref: '#/components/examples/Reforcada'
+        '200':
+          description: O cidadão já tinha comunicado ou reforçado esta ocorrência; o contador não sobe.
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
+            Idempotent-Replayed:
+              $ref: '#/components/headers/IdempotentReplayed'
+            Cache-Control:
+              $ref: '#/components/headers/CacheControl'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultadoComunicacao'
+              examples:
+                jaComunicada:
+                  $ref: '#/components/examples/JaComunicada'
+        '400':
+          $ref: '#/components/responses/PedidoInvalido'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '404':
+          $ref: '#/components/responses/NaoEncontrada'
+        '409':
+          $ref: '#/components/responses/ConflitoIdempotencia'
+        '410':
+          $ref: '#/components/responses/Resolvida'
+        '503':
+          $ref: '#/components/responses/Indisponivel'
+
+  /v1/ocorrencias/{id}/fotografia:
+    get:
+      tags: [ocorrencias]
+      operationId: obterFotografia
+      summary: Devolve a fotografia de uma ocorrência
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/IdOcorrencia'
+      responses:
+        '200':
+          description: Fotografia em JPEG.
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/CacheControl'
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+        '404':
+          $ref: '#/components/responses/NaoEncontrada'
+
+  /v1/ocorrencias/alteracoes:
+    get:
+      tags: [ocorrencias]
+      operationId: obterAlteracoes
+      summary: Devolve as ocorrências alteradas desde um cursor (pull da sincronização)
+      description: |
+        Devolve apenas as ocorrências que o cidadão comunicou ou reforçou e cuja
+        `versao` é superior a `desde`. O `cursor` devolvido é o maior valor de
+        `versao` conhecido pelo servidor e deve ser usado no pedido seguinte.
+      security:
+        - cidadao: []
+      parameters:
+        - name: desde
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 0
+          example: 0
+      responses:
+        '200':
+          description: Alterações desde o cursor indicado (pode ser vazia).
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/CacheControl'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alteracoes'
+        '400':
+          $ref: '#/components/responses/PedidoInvalido'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+
+  /v1/admin/ocorrencias/{id}:
+    patch:
+      tags: [admin]
+      operationId: mudarEstado
+      summary: Muda o estado de uma ocorrência (serviços municipais)
+      security:
+        - adminToken: []
+      parameters:
+        - $ref: '#/components/parameters/IdOcorrencia'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MudancaEstado'
+      responses:
+        '200':
+          description: Estado alterado; a ocorrência recebeu uma nova `versao`.
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/CacheControl'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ocorrencia'
+        '400':
+          $ref: '#/components/responses/PedidoInvalido'
+        '403':
+          $ref: '#/components/responses/Proibido'
+        '404':
+          $ref: '#/components/responses/NaoEncontrada'
+
+components:
+  securitySchemes:
+    cidadao:
+      type: apiKey
+      in: header
+      name: X-Cidadao
+      description: UUID que identifica o cidadão, gerado no dispositivo e guardado na loja `meta`.
+    adminToken:
+      type: apiKey
+      in: header
+      name: X-Admin-Token
+      description: Token de administração, comparado com a variável de ambiente `ADMIN_TOKEN`.
+
+  parameters:
+    IdOcorrencia:
+      name: id
+      in: path
+      required: true
+      description: Identificador da ocorrência atribuído pelo servidor.
+      schema:
+        type: integer
+        minimum: 1
+      example: 87
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      description: |
+        UUID gerado pelo cliente quando cria a pendente e repetido em todas as
+        tentativas de envio. Uma chave que não seja UUID dá `400`.
+      schema:
+        type: string
+        format: uuid
+      example: 6f1c2a4e-8b3d-4c7a-9e21-0d5f3b7a1c99
+
+  headers:
+    CacheControl:
+      description: Política de cache HTTP da resposta (ver tabela da etapa 4.1 em registo.md).
+      schema:
+        type: string
+      example: no-store
+    Location:
+      description: Caminho da ocorrência resultante (criada ou existente).
+      schema:
+        type: string
+      example: /v1/ocorrencias/87
+    IdempotentReplayed:
+      description: Presente, com o valor `true`, quando a resposta é a guardada para a mesma `Idempotency-Key`.
+      schema:
+        type: boolean
+      example: true
+    RetryAfter:
+      description: Número de segundos que o cliente deve esperar antes de tentar de novo.
+      schema:
+        type: integer
+        minimum: 0
+      example: 2
+
+  responses:
+    PedidoInvalido:
+      description: Pedido inválido (parâmetros, corpo, fotografia acima de 300 KB ou `Idempotency-Key` que não é UUID).
+      headers:
+        Cache-Control:
+          $ref: '#/components/headers/CacheControl'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+          example:
+            erro: A descrição deve ter entre 10 e 500 caracteres.
+    NaoAutenticado:
+      description: Falta o cabeçalho `X-Cidadao` ou não é um UUID.
+      headers:
+        Cache-Control:
+          $ref: '#/components/headers/CacheControl'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+          example:
+            erro: Cidadão não identificado (cabeçalho X-Cidadao em falta).
+    Proibido:
+      description: Falta o cabeçalho `X-Admin-Token` ou o valor não é o esperado.
+      headers:
+        Cache-Control:
+          $ref: '#/components/headers/CacheControl'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+          example:
+            erro: Token de administração inválido.
+    NaoEncontrada:
+      description: A ocorrência (ou a sua fotografia) não existe.
+      headers:
+        Cache-Control:
+          $ref: '#/components/headers/CacheControl'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+          example:
+            erro: Ocorrência inexistente.
+    ConflitoIdempotencia:
+      description: A `Idempotency-Key` já foi usada por este cidadão com um corpo diferente.
+      headers:
+        Cache-Control:
+          $ref: '#/components/headers/CacheControl'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+          example:
+            erro: Idempotency-Key já usada com outro corpo.
+    Resolvida:
+      description: A ocorrência já está resolvida e não aceita reforços.
+      headers:
+        Cache-Control:
+          $ref: '#/components/headers/CacheControl'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+          example:
+            erro: A ocorrência 87 já foi resolvida.
+    Indisponivel:
+      description: Servidor temporariamente indisponível (usado nos ensaios com `SIMULAR_503`); o pedido não teve efeitos.
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        Cache-Control:
+          $ref: '#/components/headers/CacheControl'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+          example:
+            erro: Serviço temporariamente indisponível.
+
+  schemas:
+    IdCategoria:
+      type: string
+      enum: [buraco, semaforo, iluminacao, sinalizacao, outro]
+      example: buraco
+
+    EstadoOcorrencia:
+      type: string
+      enum: [aberta, em-resolucao, resolvida]
+      example: aberta
+
+    Categoria:
+      type: object
+      required: [id, nome, raio]
+      properties:
+        id:
+          $ref: '#/components/schemas/IdCategoria'
+        nome:
+          type: string
+          example: Buraco
+        raio:
+          type: integer
+          minimum: 1
+          description: Raio de deteção de duplicados, em metros.
+          example: 15
+
+    Localizacao:
+      type: object
+      required: [lat, lng, precisao]
+      properties:
+        lat:
+          type: number
+          format: double
+          minimum: -90
+          maximum: 90
+          example: 40.281
+        lng:
+          type: number
+          format: double
+          minimum: -180
+          maximum: 180
+          example: -7.504
+        precisao:
+          type: number
+          minimum: 0
+          description: Precisão indicada pela Geolocation API, em metros.
+          example: 12
+
+    Ocorrencia:
+      type: object
+      required:
+        - id
+        - categoria
+        - descricao
+        - localizacao
+        - temFotografia
+        - estado
+        - comunicacoes
+        - criadaEm
+        - atualizadaEm
+        - versao
+      properties:
+        id:
+          type: integer
+          minimum: 1
+          example: 87
+        categoria:
+          $ref: '#/components/schemas/IdCategoria'
+        descricao:
+          type: string
+          minLength: 10
+          maxLength: 500
+          example: Buraco largo na faixa da direita, junto à passadeira.
+        localizacao:
+          $ref: '#/components/schemas/Localizacao'
+        temFotografia:
+          type: boolean
+          description: Indica se existe fotografia em `GET /v1/ocorrencias/{id}/fotografia`.
+          example: true
+        estado:
+          $ref: '#/components/schemas/EstadoOcorrencia'
+        comunicacoes:
+          type: integer
+          minimum: 1
+          description: Número de cidadãos distintos que comunicaram ou reforçaram a ocorrência.
+          example: 6
+        criadaEm:
+          type: string
+          format: date-time
+          example: '2026-11-20T09:15:00Z'
+        atualizadaEm:
+          type: string
+          format: date-time
+          example: '2026-11-22T18:40:00Z'
+        versao:
+          type: integer
+          minimum: 1
+          description: Valor do contador do servidor na última criação, reforço ou mudança de estado.
+          example: 214
+
+    Erro:
+      type: object
+      required: [erro]
+      properties:
+        erro:
+          type: string
+          description: Mensagem legível que descreve o erro.
+          example: Pedido inválido.
+
+    NovaOcorrencia:
+      type: object
+      required: [categoria, descricao, localizacao]
+      properties:
+        categoria:
+          $ref: '#/components/schemas/IdCategoria'
+        descricao:
+          type: string
+          minLength: 10
+          maxLength: 500
+        localizacao:
+          $ref: '#/components/schemas/Localizacao'
+        fotografia:
+          type: string
+          description: Fotografia em data URL JPEG, com no máximo 300 KB; acima disso, `400`.
+          pattern: '^data:image/jpeg;base64,'
+        recusadas:
+          type: array
+          description: Ids das candidatas que o cidadão recusou («É outra»); o servidor não funde nelas.
+          uniqueItems: true
+          items:
+            type: integer
+            minimum: 1
+          example: [87]
+
+    NovoReforco:
+      type: object
+      properties:
+        comentario:
+          type: string
+          maxLength: 500
+          example: Continua por reparar e está maior.
+
+    ResultadoComunicacao:
+      type: object
+      required: [resultado, ocorrencia]
+      properties:
+        resultado:
+          type: string
+          enum: [criada, reforcada, ja-comunicada]
+        ocorrencia:
+          $ref: '#/components/schemas/Ocorrencia'
+
+    Candidata:
+      type: object
+      required: [ocorrencia, distancia]
+      properties:
+        ocorrencia:
+          $ref: '#/components/schemas/Ocorrencia'
+        distancia:
+          type: integer
+          minimum: 0
+          description: Distância ao ponto indicado, em metros.
+          example: 8
+
+    Candidatas:
+      type: object
+      required: [candidatas]
+      properties:
+        candidatas:
+          type: array
+          maxItems: 5
+          items:
+            $ref: '#/components/schemas/Candidata'
+
+    Alteracoes:
+      type: object
+      required: [alteracoes, cursor]
+      properties:
+        alteracoes:
+          type: array
+          items:
+            $ref: '#/components/schemas/Ocorrencia'
+        cursor:
+          type: integer
+          minimum: 0
+          description: Valor a usar em `desde` no próximo pedido.
+          example: 214
+
+    MudancaEstado:
+      type: object
+      required: [estado]
+      properties:
+        estado:
+          $ref: '#/components/schemas/EstadoOcorrencia'
+
+  examples:
+    Criada:
+      summary: Ocorrência criada
+      value:
+        resultado: criada
+        ocorrencia:
+          id: 112
+          categoria: buraco
+          descricao: Buraco largo na faixa da direita, junto à passadeira.
+          localizacao: { lat: 40.281, lng: -7.504, precisao: 12 }
+          temFotografia: true
+          estado: aberta
+          comunicacoes: 1
+          criadaEm: '2026-11-22T18:40:00Z'
+          atualizadaEm: '2026-11-22T18:40:00Z'
+          versao: 215
+    Reforcada:
+      summary: Comunicação fundida numa ocorrência existente
+      value:
+        resultado: reforcada
+        ocorrencia:
+          id: 87
+          categoria: buraco
+          descricao: Buraco junto à passadeira.
+          localizacao: { lat: 40.28105, lng: -7.50405, precisao: 8 }
+          temFotografia: true
+          estado: aberta
+          comunicacoes: 6
+          criadaEm: '2026-11-20T09:15:00Z'
+          atualizadaEm: '2026-11-22T18:40:00Z'
+          versao: 216
+    JaComunicada:
+      summary: O cidadão já tinha comunicado esta ocorrência
+      value:
+        resultado: ja-comunicada
+        ocorrencia:
+          id: 87
+          categoria: buraco
+          descricao: Buraco junto à passadeira.
+          localizacao: { lat: 40.28105, lng: -7.50405, precisao: 8 }
+          temFotografia: true
+          estado: aberta
+          comunicacoes: 5
+          criadaEm: '2026-11-20T09:15:00Z'
+          atualizadaEm: '2026-11-21T10:02:00Z'
+          versao: 201

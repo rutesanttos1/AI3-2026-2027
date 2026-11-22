@@ -1,0 +1,85 @@
+/* Estilos base do Reporta (esqueleto do sprint 1) */
+:root {
+  --cor-principal: #c2410c;
+  --cor-texto: #1f2937;
+  --cor-fundo: #ffffff;
+  --cor-suave: #f3f4f6;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: var(--cor-texto);
+  background: var(--cor-fundo);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.topo {
+  background: var(--cor-principal);
+  color: #fff;
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.topo h1 { margin: 0; font-size: 1.4rem; }
+.estado-rede { margin: 0; font-size: 0.9rem; }
+
+main {
+  flex: 1;
+  width: 100%;
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+form {
+  display: grid;
+  gap: 0.4rem;
+}
+
+label { font-weight: 600; margin-top: 0.5rem; }
+
+input, select, textarea, button {
+  font: inherit;
+  padding: 0.6rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.4rem;
+}
+
+button {
+  margin-top: 0.75rem;
+  background: var(--cor-principal);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  min-height: 2.75rem; /* alvo tátil confortável em telemóvel */
+}
+
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 3px solid #1d4ed8;
+  outline-offset: 2px;
+}
+
+.localizacao { margin: 0.5rem 0 0; color: #4b5563; }
+
+.lista { list-style: none; padding: 0; margin: 0; }
+.lista li {
+  background: var(--cor-suave);
+  border-radius: 0.4rem;
+  padding: 0.6rem 0.8rem;
+  margin-bottom: 0.5rem;
+}
+.lista .vazio { color: #6b7280; }
+
+.rodape {
+  text-align: center;
+  padding: 0.75rem;
+  color: #6b7280;
+}

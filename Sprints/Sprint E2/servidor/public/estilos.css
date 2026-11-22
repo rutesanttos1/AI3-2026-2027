@@ -1,0 +1,48 @@
+// app.js — arranque da página: registo do service worker, estado da rede e
+// pedido de sincronização (plano B). Sprint 1: só o registo do service worker.
+
+'use strict';
+
+// ---------------------------------------------------------------------------
+// Registo do service worker
+// ---------------------------------------------------------------------------
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', async () => {
+    try {
+      const registo = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+      console.log('[app] service worker registado com âmbito', registo.scope);
+    } catch (erro) {
+      console.error('[app] falha ao registar o service worker:', erro);
+    }
+  });
+} else {
+  console.warn('[app] este browser não suporta service workers.');
+}
+
+// ---------------------------------------------------------------------------
+// Indicação da rede (navigator.onLine só indica que há uma interface ativa;
+// a prova de rede é um pedido que funcionou)
+// ---------------------------------------------------------------------------
+function mostrarEstadoRede() {
+  const elemento = document.getElementById('estado-rede');
+  if (elemento) elemento.textContent = navigator.onLine ? 'Com ligação' : 'Sem ligação';
+}
+window.addEventListener('online', mostrarEstadoRede);
+window.addEventListener('offline', mostrarEstadoRede);
+document.addEventListener('DOMContentLoaded', mostrarEstadoRede);
+
+// ---------------------------------------------------------------------------
+// Sincronização (provisório — implementado na etapa 4.5)
+// ---------------------------------------------------------------------------
+async function pedirSync() {
+  console.info('[app] pedirSync() ainda por implementar.');
+}
+
+// Fornecido no Anexo do enunciado (usado no plano B a partir da etapa 4.5).
+// Tempo de espera, em milissegundos, depois de `falhas` falhas seguidas (1, 2, 3…)
+function tempoDeEspera(falhas) {
+  const segundos = [1, 2, 4, 8, 16, 32, 60];
+  const base = segundos[Math.min(falhas, segundos.length) - 1];
+  const variacao = 0.7 + Math.random() * 0.6;   // entre 70 % e 130 % do valor base
+  return Math.round(base * variacao * 1000);
+}

@@ -1,0 +1,27 @@
+// formulario.js — fotografia, localização e candidatas.
+// Sprint 1: apenas impede o envio do formulário. A lógica chega na etapa 4.5.
+
+'use strict';
+
+document.addEventListener('DOMContentLoaded', () => {
+  const formulario = document.getElementById('formulario');
+  if (!formulario) return;
+
+  formulario.addEventListener('submit', (evento) => {
+    evento.preventDefault();
+    console.info('[formulario] comunicação ainda por implementar.');
+  });
+});
+
+// Funções provisórias (etapa 4.5)
+async function reduzirFotografia(ficheiro) {
+  throw new Error('reduzirFotografia: por implementar');
+}
+
+async function obterLocalizacao() {
+  throw new Error('obterLocalizacao: por implementar');
+}
+
+async function pedirSemelhantes(categoria, localizacao) {
+  throw new Error('pedirSemelhantes: por implementar');
+}
